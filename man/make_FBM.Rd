@@ -4,7 +4,7 @@
 \alias{make_FBM}
 \title{Make FBM containing ancestry-genotypes and save in an RDS file with supplementary info}
 \usage{
-make_FBM(anc_vcf_file, FBM_pref, chunk_size)
+make_FBM(anc_vcf_file, FBM_pref, chunk_size, minAC)
 }
 \arguments{
 \item{anc_vcf_file}{a file path to a VCF file with phased genotypes and estimated local ancestry, i.e. the output of flare (https://doi.org/10.1101/2022.08.02.502540)}
@@ -12,6 +12,8 @@ make_FBM(anc_vcf_file, FBM_pref, chunk_size)
 \item{FBM_pref}{a file path to store FBM and RDS file to. Omit the file extension}
 
 \item{chunk_size}{an integer indicating the max number of VCF records to read at a time}
+
+\item{minAC}{an integer indicating the minimum allele count (per-ancestry) to retain}
 }
 \description{
 Make FBM containing ancestry-genotypes and save in an RDS file with supplementary info

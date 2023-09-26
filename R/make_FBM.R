@@ -38,6 +38,7 @@ get_anc_gt <- function(vcf, anc){
 ##' @param anc_vcf_file a file path to a VCF file with phased genotypes and estimated local ancestry, i.e. the output of flare (https://doi.org/10.1101/2022.08.02.502540)
 ##' @param FBM_pref a file path to store FBM and RDS file to. Omit the file extension
 ##' @param chunk_size an integer indicating the max number of VCF records to read at a time
+##' @param minAC an integer indicating the minimum allele count (per-ancestry) to retain
 ##' @author Frank Ockerman
 ##' @importFrom VariantAnnotation VcfFile scanVcfHeader samples readVcf ref alt
 ##' @importFrom SummarizedExperiment assays
@@ -46,7 +47,7 @@ get_anc_gt <- function(vcf, anc){
 ##' @importFrom bigstatsr FBM.code256 sub_bk
 ##' @importFrom magrittr `%>%` `%<>%`
 ##' @export
-make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size){
+make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size, minAC){
     ## Reference and open VCF file
     tab <- VcfFile(anc_vcf_file, yieldSize = chunk_size)
     open(tab)    
@@ -76,6 +77,16 @@ make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size){
         ## Get ancestry-genotype matrix
         anc_gt <- get_anc_gt(vcf, anc)
 
+        ## filter minAC
+        idx_remove <- colSums(anc_gt) < minAC
+        anc_gt <- anc_gt[, !idx_remove]
+        chrom <- chrom[!idx_remove]
+        pos <- pos[!idx_remove]
+        ref <- ref[!idx_remove]
+        alt <- alt[!idx_remove]
+        rsid <- rsid[!idx_remove]
+        anc_snp <- anc_snp[!idx_remove]
+
         ## Make ancestry-genotye raw type
         nc <- ncol(anc_gt)
         anc_gt <- round(100*anc_gt) %>% as.raw() %>% matrix(., ncol = nc)
@@ -96,8 +107,7 @@ make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size){
                     alt = alt,
                     rsid = rsid,
                     anc = anc_snp,
+                    samples = samples,
                     geno = anc_FBM)
     saveRDS(object = rds_obj, file = rds)
 }
-
-
