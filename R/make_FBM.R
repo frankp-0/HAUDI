@@ -61,7 +61,7 @@ make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size, minAC){
     anc_FBM <- initialize_FBM(FBM_pref, length(samples))
 
     ## Iterate through VCF
-    chrom <- pos <- rsid <- ref <- alt <- anc_snp <- c()
+    chrom <- pos <- rsid <- ref <- alt <- anc_snp <- anc_ref <- c()
     chunk <- 1
     while(nrow(vcf <- readVcf(tab))){
         print(paste0("Processing chunk ", chunk))
@@ -77,6 +77,16 @@ make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size, minAC){
         ## Get ancestry-genotype matrix
         anc_gt <- get_anc_gt(vcf, anc)
 
+        ## Assign reference anc per-SNP
+        gt_sum <- colSums(anc_gt)
+        n1 <- length(anc)+1
+        anc_ref_new <- rep(FALSE, length(gt_sum))
+        anc_max <- sapply(1:length(rsid), function(i){
+            idx.ref <- which.max(gt_sum[((i-1)*n1+1):(i*n1-1)]) + (i-1)*n1
+            anc_ref_new[idx.ref] <<- TRUE
+        })
+        anc_ref <- c(anc_ref, anc_ref_new)
+
         ## filter minAC
         idx_remove <- colSums(anc_gt) < minAC
         anc_gt <- anc_gt[, !idx_remove]
@@ -86,6 +96,7 @@ make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size, minAC){
         alt <- alt[!idx_remove]
         rsid <- rsid[!idx_remove]
         anc_snp <- anc_snp[!idx_remove]
+        anc_ref <- anc_ref[!idx_remove]
 
         ## Make ancestry-genotye raw type
         nc <- ncol(anc_gt)
@@ -107,6 +118,7 @@ make_FBM <- function(anc_vcf_file, FBM_pref, chunk_size, minAC){
                     alt = alt,
                     rsid = rsid,
                     anc = anc_snp,
+                    anc_ref = anc_ref,
                     samples = samples,
                     geno = anc_FBM)
     saveRDS(object = rds_obj, file = rds)
