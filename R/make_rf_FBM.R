@@ -77,7 +77,9 @@ make_rf_FBM <- function(vcf_file, rf_file, FBM_pref, chunk_size, rds=NULL, minAC
                         geno = anc_FBM)                
     } else {
         h_obj <- readRDS(rds)
-        }
+    }
+    h_obj$samples <- samples
+    
 
 
     ## Iterate through VCF
