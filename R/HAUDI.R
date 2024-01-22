@@ -1,59 +1,51 @@
-##' Train HAUDI model
+##' Fit HAUDI model
 ##'
-##' @param anc_FBM_obj a list containing ancestry-genotype information 
-##' @param y a vector of phenotypes
-##' @param gamma an integer specifying the multiplicative penalty applied to ancestry-specific differences in effect
-##' @param ind_train a vector of indices for training data
-##' @param family either "gaussian" or "binomial"
-##' @return returns the model, an object of class `bigstatsr::big_sp_list`
+##' @title HAUDI
+##' @param anc_FBM_obj List returned by the function `make_rf_FBM`
+##' @param y Vector of responses
+##' @param gamma Integer specifying the multiplicative penalty to apply to differences in ancestry-specific effects
+##' @param K the number of sets to use for CMSA procedure (analagous to cross-validation)
+##' @param ind_train Vector of indices specifying the rows to use for training the model
+##' @param family Either "gaussian" or "binomial"
+##' @param snps Vector of SNPs to include in model
+##' @return an object of class `big_sp_list` from the `bigstatsr` package
 ##' @author Frank Ockerman
-##' @importFrom bigstatsr big_spLinReg big_spLogReg
 
-HAUDI <- function(anc_FBM_obj, y, gamma, ind_train, family){
-    ind.col <- which(!anc_FBM_obj$anc_ref)    
-    pf.X <- rep(gamma, ncol(anc_FBM_obj$geno))
-    pf.X[anc_FBM_obj$anc == "all"] <- 1
-    pf.X <- pf.X[ind.col]
+HAUDI <- function(anc_FBM_obj, y, gamma, K=10, ind_train=NULL, family, snps=NULL){
+    ## specify SNPs to retain
+    if(is.null(snps)) {
+        col_keep <- rep(TRUE, ncol(anc_FBM_obj$geno))
+    } else {
+        col_keep <- anc_FBM_obj$rsid %in% snps
+    }
+    ## remove reference-ancestry columns
+    col_keep <- col_keep & (!anc_FBM_obj$anc_ref)
+    ind_col <- which(col_keep) # subset SNPs
+
+    ## specify multiplicative penalty
+    pf_X <- rep(gamma, ncol(anc_FBM_obj$geno))
+    pf_X[anc_FBM_obj$anc == "all"] <- 1
+    pf_X <- pf_X[ind_col]
+
+    ## fit HAUDI model
     if(family == "gaussian"){
         mod <- big_spLinReg(
             X=anc_FBM_obj$geno,
             y.train=y[ind_train],
             ind.train=ind_train,
-            pf.X=pf.X,
-            ind.col=ind.col
+            pf.X=pf_X,
+            K=K,
+            ind.col=ind_col
         )
     } else if (family == "binomial"){
         mod <- big_spLogReg(
             X=anc_FBM_obj$geno,
             y.train=y[ind_train],
             ind.train=ind_train,
-            pf.X=pf.X,
-            ind.col=ind.col
+            pf.X=pf_X,
+            K=K,
+            ind.col=ind_col
         )        
     }
     return(mod)
 }
-
-#library(data.table)
-#pheno <- fread("/work/users/f/r/frocko/HAUDI/realDataAnalysis/derivedData/PAGE/HCHS_SOL_pheno.txt")
-#anc_FBM_obj <- readRDS("../HAUDI_PAGE/realDataAnalysis/fbm.rds")
-#fold1 <- fread("/work/users/f/r/frocko/HAUDI/realDataAnalysis/derivedData/PAGE/HCHS_SOL_samples_fold1.txt")[[1]]
-#pheno <- pheno[match(anc_FBM_obj$samples, page_subject_id),]
-#pheno_NA <- data.table(is.na(pheno))
-#names(pheno_NA) <- names(pheno)
-#pheno[is.na(pheno)] <- 0
-#y <- pheno$height
-#ind_train <- which(!(pheno_NA$height) & (pheno$page_subject_id %in% fold1))
-#family <- "gaussian"
-#gamma_vec <- c(1,1.5,2,2.5,3)
-cv_HAUDI <- function(anc_FBM_obj, y, gamma_vec, ind_train, family){
-    ind_train_shuffed <- sample(ind_train, size=length(ind_train), replace=FALSE)
-    folds_shuffed <- rep(1:length(gamma_vec), length.out = length(ind_train))
-    folds <- folds_shuffed[match(ind_train, ind_train_shuffed)]
-    models <- list()
-    for (fold in 1:length(gamma_vec)){
-        ind_train_cv <- ind_train[folds != fold]
-        mod <- HAUDI(anc_FBM_obj, y, gamma_vec[fold], ind_train_cv, family)
-        }
-
-    }
