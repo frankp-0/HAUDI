@@ -2,7 +2,7 @@
 % Please edit documentation in R/make_tracts.R
 \name{make_Tracts}
 \alias{make_Tracts}
-\title{Convert FLARE output to RFMix output}
+\title{make_Tracts}
 \usage{
 make_Tracts(anc_vcf_file, chunk_size, out_file)
 }

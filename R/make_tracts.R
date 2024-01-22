@@ -1,5 +1,6 @@
 ##' Convert FLARE output to RFMix output
 ##'
+##' @title make_Tracts
 ##' @param anc_vcf_file a file path to a VCF file with phased genotypes and estimated local ancestry, i.e. the output of flare (https://doi.org/10.1101/2022.08.02.502540)
 ##' @param chunk_size an integer indicating the max number of VCF records to read at a time
 ##' @param out_file a file path for storing output
