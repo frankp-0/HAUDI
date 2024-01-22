@@ -1,13 +1,10 @@
 Package: HAUDI
-Title: Efficient polygenic risk prediction in admixed populations
-Version: 0.0.0.9000
+Title: What the Package Does (One Line, Title Case)
+Version: 0.1.0
 Authors@R: 
-    person("Frank", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
-Description: HAUDI is a method leveraging local ancestry estimates for polygenic risk prediction in admixed populations. HAUDI uses lasso penalized regression to estimate ancestry-specific effects and shrinks these together with a multiplicative penalty on differences in effect size.
-License: GPL (>= 3)
+    person("Franklin", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
