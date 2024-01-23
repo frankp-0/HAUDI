@@ -31,11 +31,12 @@ get_anc_gt <- function(gt1, gt2, anc, rf_mat, tract_idx){
  
 ##' Make FBM containing ancestry-genotypes and return list with containing FBM and SNP info
 ##'
-##' @param vcf_file a file path to a VCF file
-##' @param rf_file a file path to an RFMix output file
-##' @param FBM_pref a file path to store FBM. Omit the file extension
-##' @param chunk_size an integer indicating the max number of VCF records to read at a time
-##' @param minAC an integer indicating the minimum allele count (per-ancestry) to retain
+##' @param vcf_file File path to a VCF file
+##' @param rf_file File path to an RFMix output file
+##' @param FBM_pref File path to store FBM. Omit the file extension
+##' @param chunk_size Integer indicating the max number of VCF records to read at a time
+##' @param rds Optional file path for an existing RDS  file to append data to
+##' @param minAC Integer indicating the minimum allele count (per-ancestry) to retain
 ##' @author Frank Ockerman
 ##' @importFrom VariantAnnotation VcfFile scanVcfHeader ScanVcfParam samples readVcf ref alt
 ##' @importFrom data.table fread

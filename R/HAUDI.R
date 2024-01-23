@@ -4,13 +4,13 @@
 ##' @param anc_FBM_obj List returned by the function `make_rf_FBM`
 ##' @param y Vector of responses
 ##' @param gamma Integer specifying the multiplicative penalty to apply to differences in ancestry-specific effects
-##' @param K the number of sets to use for CMSA procedure (analagous to cross-validation)
+##' @param K The number of sets to use for CMSA procedure (analagous to cross-validation)
 ##' @param ind_train Vector of indices specifying the rows to use for training the model
 ##' @param family Either "gaussian" or "binomial"
 ##' @param snps Vector of SNPs to include in model
-##' @return an object of class `big_sp_list` from the `bigstatsr` package
+##' @return An object of class `big_sp_list` from the `bigstatsr` package
 ##' @author Frank Ockerman
-
+##' @export
 HAUDI <- function(anc_FBM_obj, y, gamma, K=10, ind_train=NULL, family, snps=NULL){
     ## specify SNPs to retain
     if(is.null(snps)) {
@@ -29,7 +29,7 @@ HAUDI <- function(anc_FBM_obj, y, gamma, K=10, ind_train=NULL, family, snps=NULL
 
     ## fit HAUDI model
     if(family == "gaussian"){
-        mod <- big_spLinReg(
+        mod <- bigstatsr::big_spLinReg(
             X=anc_FBM_obj$geno,
             y.train=y[ind_train],
             ind.train=ind_train,
@@ -38,7 +38,7 @@ HAUDI <- function(anc_FBM_obj, y, gamma, K=10, ind_train=NULL, family, snps=NULL
             ind.col=ind_col
         )
     } else if (family == "binomial"){
-        mod <- big_spLogReg(
+        mod <- bigstatsr::big_spLogReg(
             X=anc_FBM_obj$geno,
             y.train=y[ind_train],
             ind.train=ind_train,

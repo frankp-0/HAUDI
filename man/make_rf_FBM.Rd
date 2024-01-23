@@ -7,15 +7,17 @@
 make_rf_FBM(vcf_file, rf_file, FBM_pref, chunk_size, rds = NULL, minAC = 1)
 }
 \arguments{
-\item{vcf_file}{a file path to a VCF file}
+\item{vcf_file}{File path to a VCF file}
 
-\item{rf_file}{a file path to an RFMix output file}
+\item{rf_file}{File path to an RFMix output file}
 
-\item{FBM_pref}{a file path to store FBM. Omit the file extension}
+\item{FBM_pref}{File path to store FBM. Omit the file extension}
 
-\item{chunk_size}{an integer indicating the max number of VCF records to read at a time}
+\item{chunk_size}{Integer indicating the max number of VCF records to read at a time}
 
-\item{minAC}{an integer indicating the minimum allele count (per-ancestry) to retain}
+\item{rds}{Optional file path for an existing RDS  file to append data to}
+
+\item{minAC}{Integer indicating the minimum allele count (per-ancestry) to retain}
 }
 \description{
 Make FBM containing ancestry-genotypes and return list with containing FBM and SNP info

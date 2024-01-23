@@ -13,7 +13,7 @@ HAUDI(anc_FBM_obj, y, gamma, K = 10, ind_train = NULL, family, snps = NULL)
 
 \item{gamma}{Integer specifying the multiplicative penalty to apply to differences in ancestry-specific effects}
 
-\item{K}{the number of sets to use for CMSA procedure (analagous to cross-validation)}
+\item{K}{The number of sets to use for CMSA procedure (analagous to cross-validation)}
 
 \item{ind_train}{Vector of indices specifying the rows to use for training the model}
 
@@ -22,7 +22,7 @@ HAUDI(anc_FBM_obj, y, gamma, K = 10, ind_train = NULL, family, snps = NULL)
 \item{snps}{Vector of SNPs to include in model}
 }
 \value{
-an object of class \code{big_sp_list} from the \code{bigstatsr} package
+An object of class \code{big_sp_list} from the \code{bigstatsr} package
 }
 \description{
 Fit HAUDI model
