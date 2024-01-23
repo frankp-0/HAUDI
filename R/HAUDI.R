@@ -40,7 +40,7 @@ HAUDI <- function(anc_FBM_obj, y, gamma, K=10, ind_train=NULL, family, snps=NULL
     } else if (family == "binomial"){
         mod <- bigstatsr::big_spLogReg(
             X=anc_FBM_obj$geno,
-            y.train=y[ind_train],
+            y01.train=y[ind_train],
             ind.train=ind_train,
             pf.X=pf_X,
             K=K,
