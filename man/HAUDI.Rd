@@ -4,7 +4,7 @@
 \alias{HAUDI}
 \title{HAUDI}
 \usage{
-HAUDI(anc_FBM_obj, y, gamma, K = 10, ind_train = NULL, family, snps = NULL)
+HAUDI(anc_FBM_obj, y, gamma, ind_train = NULL, family, snps = NULL, ...)
 }
 \arguments{
 \item{anc_FBM_obj}{List returned by the function \code{make_rf_FBM}}
@@ -13,13 +13,13 @@ HAUDI(anc_FBM_obj, y, gamma, K = 10, ind_train = NULL, family, snps = NULL)
 
 \item{gamma}{Integer specifying the multiplicative penalty to apply to differences in ancestry-specific effects}
 
-\item{K}{The number of sets to use for CMSA procedure (analagous to cross-validation)}
-
 \item{ind_train}{Vector of indices specifying the rows to use for training the model}
 
 \item{family}{Either "gaussian" or "binomial"}
 
 \item{snps}{Vector of SNPs to include in model}
+
+\item{...}{additional arguments to pass to big_spLinReg / big_spLogReg}
 }
 \value{
 An object of class \code{big_sp_list} from the \code{bigstatsr} package
