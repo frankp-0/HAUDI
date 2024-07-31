@@ -4,7 +4,15 @@
 \alias{make_rf_FBM}
 \title{Make FBM containing ancestry-genotypes and return list with containing FBM and SNP info}
 \usage{
-make_rf_FBM(vcf_file, rf_file, FBM_pref, chunk_size, rds = NULL, minAC = 1)
+make_rf_FBM(
+  vcf_file,
+  rf_file,
+  FBM_pref,
+  chunk_size,
+  rds = NULL,
+  minAC = 1,
+  geno_format = "HDS"
+)
 }
 \arguments{
 \item{vcf_file}{File path to a VCF file}
@@ -18,6 +26,8 @@ make_rf_FBM(vcf_file, rf_file, FBM_pref, chunk_size, rds = NULL, minAC = 1)
 \item{rds}{Optional file path for an existing RDS  file to append data to}
 
 \item{minAC}{Integer indicating the minimum allele count (per-ancestry) to retain}
+
+\item{geno_format}{either "HDS" or "GT", specifying the VCF format field to use}
 }
 \description{
 Make FBM containing ancestry-genotypes and return list with containing FBM and SNP info

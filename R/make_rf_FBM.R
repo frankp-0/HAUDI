@@ -37,6 +37,7 @@ get_anc_gt <- function(gt1, gt2, anc, rf_mat, tract_idx){
 ##' @param chunk_size Integer indicating the max number of VCF records to read at a time
 ##' @param rds Optional file path for an existing RDS  file to append data to
 ##' @param minAC Integer indicating the minimum allele count (per-ancestry) to retain
+##' @param geno_format either "HDS" or "GT", specifying the VCF format field to use
 ##' @author Frank Ockerman
 ##' @importFrom VariantAnnotation VcfFile scanVcfHeader ScanVcfParam samples readVcf ref alt
 ##' @importFrom data.table fread
@@ -46,7 +47,7 @@ get_anc_gt <- function(gt1, gt2, anc, rf_mat, tract_idx){
 ##' @importFrom bigstatsr FBM.code256 sub_bk
 ##' @importFrom magrittr `%>%` `%<>%` 
 ##' @export
-make_rf_FBM <- function(vcf_file, rf_file, FBM_pref, chunk_size, rds=NULL, minAC=1){
+make_rf_FBM <- function(vcf_file, rf_file, FBM_pref, chunk_size, rds=NULL, minAC=1, geno_format="HDS"){
     ## Read ancestry tracts
     rf <- fread(file = rf_file, sep = '\t', header = T)
     rf_mat <- as.matrix(rf[,4:ncol(rf)])
@@ -54,7 +55,7 @@ make_rf_FBM <- function(vcf_file, rf_file, FBM_pref, chunk_size, rds=NULL, minAC
     ## Reference and open VCF file
     tab <- VcfFile(vcf_file, yieldSize = chunk_size)
     open(tab)
-    param <- ScanVcfParam(c("ALT"), geno="HDS")
+    param <- ScanVcfParam(c("ALT"), geno=geno_format)
 
     ## Extract VCF info
     rf_header <- readLines(gzfile(rf_file), n=1) %>% strsplit(., " +") %>% `[[`(1)
@@ -98,8 +99,16 @@ make_rf_FBM <- function(vcf_file, rf_file, FBM_pref, chunk_size, rds=NULL, minAC
         vcf <- vcf[keep]
 
         ## Remove variants below minAC threshold
-        gt1 <- assays(vcf)$HDS[,,1]
-        gt2 <- assays(vcf)$HDS[,,2]        
+        if (geno_format == "HDS") {
+            gt1 <- assays(vcf)$HDS[,,1]
+            gt2 <- assays(vcf)$HDS[,,2]                    
+        } else if (geno_format == "GT") {
+            gt1 <- assays(vcf)$GT
+            gt2 <- apply(substr(gt1, 3, 3), 2, FUN=as.numeric)
+            gt1 <- apply(substr(gt1, 1, 1), 2, FUN=as.numeric)
+        } else {
+            stop("Please specify either HDS or GT for geno_format")
+        }
         idx_remove <- rowSums(gt1+gt2) < minAC
         gt1 <- gt1[!idx_remove,]
         gt2 <- gt2[!idx_remove,]        
