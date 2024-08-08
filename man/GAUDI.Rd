@@ -5,7 +5,8 @@
 \title{GAUDI}
 \usage{
 GAUDI(
-  anc_FBM_obj,
+  FBM_obj,
+  FBM_info,
   y,
   gamma_vec,
   K = 10,
@@ -18,7 +19,9 @@ GAUDI(
 )
 }
 \arguments{
-\item{anc_FBM_obj}{}
+\item{FBM_obj}{object of FBM class}
+
+\item{FBM_info}{data frame containing information for FBM (chrom/pos/samples/etc.)}
 
 \item{y}{vector of responses}
 

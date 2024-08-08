@@ -4,12 +4,12 @@
 \alias{construct_GAUDI}
 \title{construct_GAUDI}
 \usage{
-construct_GAUDI(anc_FBM_obj, snps = NULL)
+construct_GAUDI(FBM_obj, FBM_info, snps = NULL)
 }
 \arguments{
-\item{anc_FBM_obj}{}
-
 \item{snps}{}
+
+\item{anc_FBM_obj}{}
 }
 \value{
 matrix for fitting GAUDI

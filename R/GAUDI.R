@@ -1,7 +1,8 @@
 ##' Fit GAUDI model
 ##'
 ##' @title GAUDI
-##' @param anc_FBM_obj 
+##' @param FBM_obj object of FBM class
+##' @param FBM_info data frame containing information for FBM (chrom/pos/samples/etc.)
 ##' @param y vector of responses
 ##' @param K number of folds to use in cross-validation
 ##' @param ind_train integer vector of samples to use in training model
@@ -19,10 +20,10 @@
 ##' @importFrom Matrix sparseMatrix
 ##' @importClassesFrom Matrix dgCMatrix
 ##' @export
-GAUDI <- function(anc_FBM_obj, y, gamma_vec, K=10, ind_train=NULL, snps=NULL,
+GAUDI <- function(FBM_obj, FBM_info, y, gamma_vec, K=10, ind_train=NULL, snps=NULL,
                   verbose = F, minlam = 0, maxsteps_init = 2000,
                   maxsteps_cv = 2000 * 10){
-    X <- construct_GAUDI(anc_FBM_obj, snps)
+    X <- construct_GAUDI(FBM_obj, FBM_info, snps)
     if(is.null(ind_train)) {ind_train <- 1:nrow(X)}
     X <- X[ind_train,]
     y <- y[ind_train]
@@ -169,19 +170,19 @@ get_upper_fusion_matrix <- function(X){
 ##' @return matrix for fitting GAUDI
 ##' @author Frank Ockerman
 ##' @export
-construct_GAUDI <- function(anc_FBM_obj, snps=NULL){
+construct_GAUDI <- function(FBM_obj, FBM_info, snps=NULL){
     if(is.null(snps)) {
-        idx_col <- 1:ncol(anc_FBM_obj$geno)
-        idx_col <- idx_col[anc_FBM_obj$anc[idx_col] != "all"]        
+        idx_col <- 1:ncol(FBM_obj)
+        idx_col <- idx_col[FBM_info$anc[idx_col] != "all"]        
     } else {
-        idx_col <- which(anc_FBM_obj$rsid %in% snps)
-        idx_col <- idx_col[anc_FBM_obj$anc[idx_col] != "all"]        
+        idx_col <- which(FBM_info$rsid %in% snps)
+        idx_col <- idx_col[FBM_info$anc[idx_col] != "all"]        
     }
-    rsid <- anc_FBM_obj$rsid[idx_col]
+    rsid <- FBM_info$rsid[idx_col]
     idx_col <- idx_col[order(rsid)]
-    anc <- anc_FBM_obj$anc[idx_col]
+    anc <- FBM_info$anc[idx_col]
     rsid <- rsid[order(rsid)]
-    X <- anc_FBM_obj$geno[,idx_col]
+    X <- FBM_obj[,idx_col]
     colnames(X) <- paste(rsid, anc, sep=".anc.")
     return(X)
 }
