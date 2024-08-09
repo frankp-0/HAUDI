@@ -26,10 +26,9 @@ make_fbm(
 \item{min_ac}{Minimum allele count (per-ancestry) to retain}
 
 \item{geno_format}{The VCF format field to use ("HDS" or "GT")}
+
+\item{anc_names}{vector of labels for each population}
 }
 \description{
 Make HAUDI-style FBM and return list with FBM and SNP info
-}
-\author{
-Frank Ockerman
 }

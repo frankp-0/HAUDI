@@ -4,7 +4,7 @@
 \alias{lasso}
 \title{LASSO}
 \usage{
-lasso(fbm_obj, fbm_info, y, gamma, ind_train = NULL, family, snps = NULL, ...)
+lasso(fbm_obj, fbm_info, y, ind_train = NULL, family, snps = NULL, ...)
 }
 \arguments{
 \item{fbm_obj}{object of FBM class}

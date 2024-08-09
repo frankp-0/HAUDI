@@ -28,6 +28,8 @@ for fbm (chrom/pos/samples/etc.)}
 
 \item{gamma_vec}{vector of gamma values}
 
+\item{k}{number of folds to use in cross-validation}
+
 \item{ind_train}{integer vector of samples to use in training model}
 
 \item{snps}{vector of snp names to use in model}
@@ -39,8 +41,6 @@ for fbm (chrom/pos/samples/etc.)}
 \item{maxsteps_init}{max steps for genlasso in initial model}
 
 \item{maxsteps_cv}{max steps for genlasso in cross-validation models}
-
-\item{K}{number of folds to use in cross-validation}
 }
 \value{
 list containing information for best cross-validated fit
