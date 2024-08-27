@@ -14,8 +14,7 @@
 ##' @param ... additional arguments to pass to big_spLinReg / big_spLogReg
 ##' @return An object of class `big_sp_list` from the `bigstatsr` package
 ##' @author Frank Ockerman
-##' @importFrom bigstatsr big_spLinReg big_spLogReg
-##' @importClassesFrom bigstatsr FBM.code256
+##' @import bigstatsr
 ##' @export
 haudi <- function(fbm_obj, fbm_info, y, gamma,
                   ind_train = NULL, family, snps = NULL, ...) {
