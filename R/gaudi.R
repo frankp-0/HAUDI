@@ -16,10 +16,9 @@
 ##' @return list containing information for best cross-validated fit
 ##' @author Bryce Rowland, Frank Ockerman
 ##' @import genlasso
-##' @importFrom splitTools create_folds
-##' @importFrom stringr str_remove
-##' @importFrom Matrix sparseMatrix
-##' @importClassesFrom Matrix dgCMatrix
+##' @import splitTools
+##' @import stringr
+##' @import Matrix
 ##' @export
 gaudi <- function(fbm_obj, fbm_info, y, gamma_vec, k = 10, ind_train = NULL,
                   snps = NULL, verbose = FALSE, minlam = 0,
@@ -75,7 +74,7 @@ cv_fused_lasso <- function(x, y, n_folds,
     )
     print("Done!")
 
-    splits <- create_folds(
+    splits <- splitTools::create_folds(
       y = seq_len(nrow(x)),
       k = n_folds,
       type = "basic"
