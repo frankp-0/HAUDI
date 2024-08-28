@@ -10,8 +10,17 @@ test_that("FBM genotype data is correct", {
     anc_names = c("pop_1", "pop_2", "pop_3")
   )
 
-  fbm_rds <- system.file("extdata", "fbm.rds", package = "HAUDI")
-  fbm_test <- readRDS(fbm_rds)
+  bk_file <- system.file("extdata", "fbm.bk", package = "HAUDI")
+  bk_file <- sub(x = bk_file, pattern = ".bk", replacement = "")
+  code_dosage <- rep(NA_real_, 256)
+  code_dosage[1:201] <- seq(0, 2, length.out = 201)
+  fbm_test <- bigstatsr::FBM.code256(
+    nrow = 40, ncol = 1200,
+    code = code_dosage,
+    backingfile = bk_file,
+    create_bk = FALSE,
+    is_read_only = TRUE
+  )
   expect_equal(fbm_list$FBM[, ], fbm_test[, ])
 })
 

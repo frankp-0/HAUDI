@@ -1,6 +1,6 @@
 ## make_fbm.R -- functions for generating HAUDI-style File-Backed Matrices
 
-## Combines list of matrices into single matrix,
+## Combines list of matrices into single lmatrix,
 ## by interleaving their rows
 interleave_matrices <- function(list_of_matrices) {
   idx_interleaved <- order(sequence(sapply(list_of_matrices, nrow)))
@@ -17,7 +17,7 @@ initialize_fbm <- function(fbm_pref, nrow) {
   if (file.exists(backing_file)) {
     file.remove(backing_file)
   }
-  anc_fbm <- FBM.code256(
+  anc_fbm <- bigstatsr::FBM.code256(
     nrow = nrow,
     ncol = 0,
     backingfile = fbm_pref,
@@ -72,19 +72,25 @@ interpolate_ancestry <- function(x, x_prev = NULL, pos, pos_prev = NULL) {
 ##' @param min_ac Minimum allele count (per-ancestry) to retain
 ##' @param geno_format The VCF format field to use ("HDS" or "GT")
 ##' @param anc_names vector of labels for each population
-##' @importFrom data.table fread
-##' @importFrom SummarizedExperiment assays
-##' @importFrom GenomeInfoDb seqnames
-##' @importFrom IRanges ranges
-##' @importFrom bigstatsr FBM.code256 sub_bk
+##' @import SummarizedExperiment
+##' @import GenomeInfoDb
+##' @import IRanges
+##' @import bigstatsr
 ##' @export
 make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
                      min_ac = 1, geno_format = "HDS", anc_names) {
-  tab <- VcfFile(vcf_file, yieldSize = chunk_size)
+  tab <- VariantAnnotation::VcfFile(vcf_file, yieldSize = chunk_size)
   open(tab)
-  param <- ScanVcfParam(c("ALT"), geno = c(geno_format, "AN1", "AN2"))
+  param <- VariantAnnotation::ScanVcfParam(c("ALT"),
+    geno = c(geno_format, "AN1", "AN2")
+  )
+
   ## Initialize FBM
-  anc_fbm <- initialize_fbm(fbm_pref, length(samples(scanVcfHeader(tab))))
+  anc_fbm <- initialize_fbm(
+    fbm_pref,
+    length(VariantAnnotation::samples(VariantAnnotation::scanVcfHeader(tab)))
+  )
+
   fbm_info <- list(
     chrom = c(),
     pos = c(),
@@ -99,15 +105,15 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
   chunk <- 1
   an1_prev <- an2_prev <- pos_prev <- NULL
 
-  while (nrow(vcf <- readVcf(tab, param = param))) {
+  while (nrow(vcf <- VariantAnnotation::readVcf(tab, param = param))) {
     print(paste0("Processing chunk ", chunk))
 
     ## Remove variants below min_ac threshold
     if (geno_format == "HDS") {
-      gt1 <- assays(vcf)$HDS[, , 1]
-      gt2 <- assays(vcf)$HDS[, , 2]
+      gt1 <- SummarizedExperiment::assays(vcf)$HDS[, , 1]
+      gt2 <- SummarizedExperiment::assays(vcf)$HDS[, , 2]
     } else if (geno_format == "GT") {
-      gt1 <- assays(vcf)$GT
+      gt1 <- SummarizedExperiment::assays(vcf)$GT
       gt2 <- apply(substr(gt1, 3, 3), 2, FUN = as.numeric)
       gt1 <- apply(substr(gt1, 1, 1), 2, FUN = as.numeric)
     } else {
@@ -124,20 +130,26 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
     }
 
     ## Add SNP info
-    chrom <- rep(as.vector(seqnames(vcf)), each = length(anc_names) + 1)
-    ref <- rep(as.vector(ref(vcf)), each = length(anc_names) + 1)
-    alt <- rep(as.vector(unlist(alt(vcf))), each = length(anc_names) + 1)
+    chrom <- rep(as.vector(GenomeInfoDb::seqnames(vcf)),
+      each = length(anc_names) + 1
+    )
+    ref <- rep(as.vector(VariantAnnotation::ref(vcf)),
+      each = length(anc_names) + 1
+    )
+    alt <- rep(as.vector(unlist(VariantAnnotation::alt(vcf))),
+      each = length(anc_names) + 1
+    )
     rsid <- rep(rownames(vcf), each = length(anc_names) + 1)
     anc_snp <- c(rep(c(anc_names, "all"),
       length.out = (length(anc_names) + 1) * nrow(vcf)
     ))
 
     ## Get ancestries
-    an1 <- assays(vcf)$AN1
-    an2 <- assays(vcf)$AN2
+    an1 <- SummarizedExperiment::assays(vcf)$AN1
+    an2 <- SummarizedExperiment::assays(vcf)$AN2
 
     ## Interpolate ancestries
-    pos <- as.vector(ranges(vcf)@start)
+    pos <- as.vector(IRanges::ranges(vcf)@start)
     an1 <- sapply(seq_len(ncol(an1)), function(j) {
       interpolate_ancestry(an1[, j], an1_prev[, j], pos, pos_prev)
     })
