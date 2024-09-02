@@ -121,8 +121,8 @@ lasso <- function(fbm_obj, fbm_info, y, ind_train = NULL,
 ##' returned by `haudi` or `lasso`
 ##' @return An object of class `big_sp_list` from the `bigstatsr` package
 ##' @author Frank Ockerman
-##' @importFrom bigstatsr big_spLinReg big_spLogReg
-##' @importClassesFrom bigstatsr FBM.code256
+##' @import bigstatsr
+##' @import data.table
 ##' @export
 get_beta_haudi <- function(fbm_obj, fbm_info, haudi_model) {
   anc <- snp <- beta_all <- `:=` <- NULL # due to R CMD check
@@ -136,16 +136,23 @@ get_beta_haudi <- function(fbm_obj, fbm_info, haudi_model) {
   ancestries <- unique(fbm_info$anc)
   ancestries <- ancestries[ancestries != "all"]
 
-  dt_ref <- dt_snp[anc == "all", ]
+  dt_ref <- data.table::data.table(dt_snp[dt_snp$anc == "all", ])
   dt_ref$anc <- NULL
   dt_ref$beta_all <- dt_ref$beta
 
   for (ancestry in ancestries) {
-    x <- dt_snp[anc == ancestry, ]
-    beta_diff <- dt_ref[, x[match(dt_ref$snp, snp), ]$beta]
-    beta_diff[is.na(beta_diff)] <- 0
-    dt_ref[, (paste0("beta_", ancestry)) := beta_all + beta_diff]
+    x <- dt_snp[dt_snp$anc == ancestry, ]
+    idx <- match(dt_ref$snp, x$snp)
+    idx_na <- which(is.na(idx))
+    beta_diff <- rep(0, length(idx))
+    beta_diff[-idx_na] <- x[idx[-idx_na], ]$beta
+    new_col <- paste0("beta_", ancestry)
+    dt_ref <- data.table::set(dt_ref,
+      j = new_col,
+      value = dt_ref$beta_all + beta_diff
+    )
   }
+
 
   dt_ref$beta_all <- dt_ref$beta <- NULL
   return(dt_ref)
