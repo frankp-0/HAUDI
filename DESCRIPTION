@@ -1,6 +1,6 @@
 Package: HAUDI
 Title: Efficient Lasso Framework for Admixture-Aware Polygenic Risk Scores
-Version: 0.1.0
+Version: 0.1.0.0001
 Authors@R: 
     person("Franklin", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
 Description: What the package does (one paragraph).

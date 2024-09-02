@@ -136,7 +136,8 @@ get_beta_haudi <- function(fbm_obj, fbm_info, haudi_model) {
   ancestries <- unique(fbm_info$anc)
   ancestries <- ancestries[ancestries != "all"]
 
-  dt_ref <- dt_snp[anc == "all", -"anc"]
+  dt_ref <- dt_snp[anc == "all", ]
+  dt_ref$anc <- NULL
   dt_ref$beta_all <- dt_ref$beta
 
   for (ancestry in ancestries) {
