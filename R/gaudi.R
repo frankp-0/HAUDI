@@ -88,12 +88,12 @@ cv_fused_lasso <- function(x, y, n_folds,
     lambdas <- init_fit$lambda
     fold_scores <- vector("list", length = n_folds)
 
-    for (k in 1:n_folds) {
-      print(sprintf("Fitting fold %s", k))
+    for (fold in 1:n_folds) {
+      print(sprintf("Fitting fold %s", fold))
 
-      fold_fit <- genlasso(
-        y = y[splits[[k]]],
-        X = x[splits[[k]], ],
+      fold_fit <- genlasso::genlasso(
+        y = y[splits[[fold]]],
+        X = x[splits[[fold]], ],
         D = penalty_matrix,
         minlam = minlam_fold,
         maxsteps = maxsteps_cv,
@@ -101,9 +101,9 @@ cv_fused_lasso <- function(x, y, n_folds,
       )
       fold_pred <- predict.genlasso(fold_fit,
         lambda = lambdas,
-        Xnew = x[-splits[[k]], ]
+        Xnew = x[-splits[[fold]], ]
       )$fit
-      fold_scores[[k]] <- cor(fold_pred, y[-splits[[k]]])^2
+      fold_scores[[fold]] <- cor(fold_pred, y[-splits[[fold]]])^2
     }
 
     cv_r2_full <- do.call(cbind, fold_scores)
