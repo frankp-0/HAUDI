@@ -1,11 +1,11 @@
 test_that("GAUDI works", {
-  vcf_file <- system.file("extdata", "target.flare.vcf.gz", package = "HAUDI")
+  vcf_file <- system.file("extdata", "2way.lanc.vcf.gz", package = "HAUDI")
   fbm <- make_fbm(
     vcf_file = vcf_file,
     fbm_pref = tempfile(),
     chunk_size = 100,
     rds = NULL,
-    min_ac = 1,
+    min_ac = 10,
     geno_format = "GT",
     anc_names = c("pop_1", "pop_2")
   )
@@ -19,13 +19,3 @@ test_that("GAUDI works", {
     )
   })
 })
-
-
-vcf_file <- system.file("extdata", "target.flare.vcf.gz", package = "HAUDI")
-vcf_file <- vcf_file
-fbm_pref <- tempfile()
-chunk_size <- 100
-rds <- NULL
-min_ac <- 1
-geno_format <- "GT"
-anc_names <- c("pop_1", "pop_2")
