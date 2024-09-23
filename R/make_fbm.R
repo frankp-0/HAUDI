@@ -108,7 +108,7 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
   while (nrow(vcf <- VariantAnnotation::readVcf(tab, param = param))) {
     print(paste0("Processing chunk ", chunk))
 
-    ## Remove variants below min_ac threshold
+    ## Get genotype data
     if (geno_format == "HDS") {
       gt1 <- SummarizedExperiment::assays(vcf)$HDS[, , 1]
       gt2 <- SummarizedExperiment::assays(vcf)$HDS[, , 2]
@@ -119,10 +119,6 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
     } else {
       stop("Please specify either HDS or GT for geno_format")
     }
-    idx_remove <- rowSums(gt1 + gt2) < min_ac
-    gt1 <- gt1[!idx_remove, ]
-    gt2 <- gt2[!idx_remove, ]
-    vcf <- vcf[!idx_remove]
 
     if (nrow(vcf) < 2) {
       chunk <- chunk + 1
@@ -180,6 +176,23 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
       anc_ref[idx_ref] <- TRUE
     }
 
+    ## Record SNP info
+    fbm_info_new <- data.frame(
+      chrom = chrom,
+      pos = pos,
+      ref = ref,
+      alt = alt,
+      rsid = rsid,
+      anc = anc_snp,
+      anc_ref = anc_ref
+    )
+
+    ## Filter by minimum allele count
+    idx_keep <- colSums(anc_gt) >= min_ac
+    fbm_info_new <- fbm_info_new[idx_keep, ]
+    fbm_info <- rbind(fbm_info, fbm_info_new)
+    anc_gt <- anc_gt[, idx_keep]
+
     ## Make ancestry-genotye raw type
     nc <- ncol(anc_gt)
     anc_gt <- round(100 * anc_gt) |>
@@ -190,13 +203,6 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
     fbm_nc <- ncol(anc_fbm)
     anc_fbm$add_columns(nc)
     anc_fbm[, (fbm_nc + 1):ncol(anc_fbm)] <- anc_gt
-    fbm_info$chrom <- c(fbm_info$chrom, chrom)
-    fbm_info$pos <- c(fbm_info$pos, pos)
-    fbm_info$ref <- c(fbm_info$ref, ref)
-    fbm_info$alt <- c(fbm_info$alt, alt)
-    fbm_info$rsid <- c(fbm_info$rsid, rsid)
-    fbm_info$anc <- c(fbm_info$anc, anc_snp)
-    fbm_info$anc_ref <- c(fbm_info$anc_ref, anc_ref)
     chunk <- chunk + 1
   }
   close(tab)
