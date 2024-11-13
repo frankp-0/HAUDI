@@ -143,16 +143,14 @@ get_beta_haudi <- function(fbm_obj, fbm_info, haudi_model) {
   for (ancestry in ancestries) {
     x <- dt_snp[dt_snp$anc == ancestry, ]
     idx <- match(dt_ref$snp, x$snp)
-    idx_na <- which(is.na(idx))
     beta_diff <- rep(0, length(idx))
-    beta_diff[-idx_na] <- x[idx[-idx_na], ]$beta
+    beta_diff[!is.na(idx)] <- x[idx[!is.na(idx)], ]$beta
     new_col <- paste0("beta_", ancestry)
     dt_ref <- data.table::set(dt_ref,
       j = new_col,
       value = dt_ref$beta_all + beta_diff
     )
   }
-
 
   dt_ref$beta_all <- dt_ref$beta <- NULL
   return(dt_ref)
