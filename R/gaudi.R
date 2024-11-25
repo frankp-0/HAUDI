@@ -1,3 +1,16 @@
+##' Fit GAUDI model
+x_mat <- construct_gaudi(fbm_obj, fbm_info, snps)
+if (is.null(ind_train)) {
+  ind_train <- seq_len(nrow(x_mat))
+}
+x_mat <- x_mat[ind_train, ]
+y <- y[ind_train]
+mod <- cv_fused_lasso(
+  x = x_mat, y = y, n_folds = k, verbose = verbose,
+  minlam = minlam, maxsteps_init = maxsteps_init,
+  maxsteps_cv = maxsteps_cv, gamma_vec = gamma_vec
+)
+##'
 ##' @title gaudi
 ##' @param fbm_obj object of FBM class
 ##' @param fbm_info data frame containing information
@@ -126,6 +139,10 @@ cv_fused_lasso <- function(x, y, n_folds,
   )
 
   return(out_list)
+}
+
+get_pair_fusion_matrix <- function(p) {
+  genlasso::getD1dSparse(p)[c(1:p)[which(c(1:p) %% 2 != 0)], ]
 }
 
 get_upper_fusion_matrix <- function(x) {
