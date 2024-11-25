@@ -87,6 +87,7 @@ cv_fused_lasso <- function(x, y, n_folds,
 
     lambdas <- init_fit$lambda
     fold_scores <- vector("list", length = n_folds)
+    n_ratio <- (n_folds - 1) / n_folds
 
     for (fold in 1:n_folds) {
       print(sprintf("Fitting fold %s", fold))
@@ -100,7 +101,7 @@ cv_fused_lasso <- function(x, y, n_folds,
         verbose = verbose
       )
       fold_pred <- predict.genlasso(fold_fit,
-        lambda = lambdas,
+        lambda = lambdas * n_ratio,
         Xnew = x[-splits[[fold]], ]
       )$fit
       fold_scores[[fold]] <- cor(fold_pred, y[-splits[[fold]]])^2
@@ -199,7 +200,7 @@ construct_gaudi <- function(fbm_obj, fbm_info, snps = NULL) {
   idx_col <- idx_col[order(rsid)]
   anc <- fbm_info$anc[idx_col]
   rsid <- rsid[order(rsid)]
-  x <- fbm_obj[, idx_col]
-  colnames(x) <- paste(rsid, anc, sep = ".anc.")
+  x <- cbind(1, fbm_obj[, idx_col])
+  colnames(x) <- c("Intercept", paste(rsid, anc, sep = ".anc."))
   return(x)
 }
