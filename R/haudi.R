@@ -34,8 +34,8 @@ haudi <- function(fbm_obj, fbm_info, y, gamma,
   ind_col <- which(col_keep) # subset SNPs
 
   ## specify multiplicative penalty
-  pf_x <- rep(gamma, ncol(fbm_obj))
-  pf_x[fbm_info$anc == "all"] <- 1
+  pf_x <- rep(1, ncol(fbm_obj))
+  pf_x[fbm_info$anc == "all"] <- gamma
   pf_x <- pf_x[ind_col]
 
   ## fit HAUDI model
