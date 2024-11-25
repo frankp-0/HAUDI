@@ -55,7 +55,8 @@ cv_fused_lasso <- function(x, y, n_folds,
   i <- 1
   ## for each value of gamma, loop through this procedure.
   for (gamma in gamma_vec) {
-    penalty_matrix <- get_penalty_matrix(x, gamma = gamma)
+    penalty_matrix <- get_penalty_matrix(x[, -1], gamma = gamma)
+    penalty_matrix <- cbind(0, rbind(0, penalty_matrix))
 
     if (is.null(penalty_matrix)) {
       return(NA)
