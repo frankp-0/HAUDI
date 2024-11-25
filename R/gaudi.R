@@ -90,7 +90,7 @@ cv_fused_lasso <- function(x, y, n_folds,
         gamma = gamma,
         minlam = n_ratio * min(init_fit$lambda),
         maxsteps = maxsteps_cv,
-        verbose = TRUE
+        verbose = verbose
       )
       fold_pred <- predict.genlasso(fold_fit,
         lambda = lambdas * n_ratio,
