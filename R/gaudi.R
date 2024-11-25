@@ -1,4 +1,15 @@
 ##' Fit GAUDI model
+x_mat <- construct_gaudi(fbm_obj, fbm_info, snps)
+if (is.null(ind_train)) {
+  ind_train <- seq_len(nrow(x_mat))
+}
+x_mat <- x_mat[ind_train, ]
+y <- y[ind_train]
+mod <- cv_fused_lasso(
+  x = x_mat, y = y, n_folds = k, verbose = verbose,
+  minlam = minlam, maxsteps_init = maxsteps_init,
+  maxsteps_cv = maxsteps_cv, gamma_vec = gamma_vec
+)
 ##'
 ##' @title gaudi
 ##' @param fbm_obj object of FBM class
@@ -55,8 +66,7 @@ cv_fused_lasso <- function(x, y, n_folds,
   i <- 1
   ## for each value of gamma, loop through this procedure.
   for (gamma in gamma_vec) {
-    penalty_matrix <- get_penalty_matrix(x[, -1], gamma = gamma)
-    penalty_matrix <- cbind(0, rbind(0, penalty_matrix))
+    penalty_matrix <- get_upper_fusion_matrix(x)
 
     if (is.null(penalty_matrix)) {
       return(NA)
@@ -66,12 +76,8 @@ cv_fused_lasso <- function(x, y, n_folds,
       "Getting lambdas from initial genlasso call for gamma value %s",
       gamma
     ))
-    init_fit <- genlasso::genlasso(
-      y = y,
-      X = x,
-      verbose = verbose,
-      D = penalty_matrix,
-      maxsteps = maxsteps_init
+    init_fit <- genlasso::fusedlasso(
+      y = y, X = x, D = penalty_matrix, gamma = gamma, verbose = verbose,
     )
     print("Done!")
 
@@ -84,22 +90,20 @@ cv_fused_lasso <- function(x, y, n_folds,
     ## Then, below we specify to run the cv fold models to the
     ## minimum lambda, and specify a large number of iterations to
     ## make sure it gets there. But stop once it does!
-    minlam_fold <- min(init_fit$lambda)
-
     lambdas <- init_fit$lambda
     fold_scores <- vector("list", length = n_folds)
     n_ratio <- (n_folds - 1) / n_folds
 
     for (fold in 1:n_folds) {
       print(sprintf("Fitting fold %s", fold))
-
-      fold_fit <- genlasso::genlasso(
+      fold_fit <- genlasso::fusedlasso(
         y = y[splits[[fold]]],
         X = x[splits[[fold]], ],
         D = penalty_matrix,
-        minlam = minlam_fold,
+        gamma = gamma,
+        minlam = n_ratio * min(init_fit$lambda),
         maxsteps = maxsteps_cv,
-        verbose = verbose
+        verbose = TRUE
       )
       fold_pred <- predict.genlasso(fold_fit,
         lambda = lambdas * n_ratio,
@@ -135,22 +139,6 @@ cv_fused_lasso <- function(x, y, n_folds,
   )
 
   return(out_list)
-}
-
-get_penalty_matrix <- function(x, gamma) {
-  if (gamma > 0) {
-    rbind(get_upper_fusion_matrix(x), diag(ncol(x)) * gamma)
-  } else {
-    get_upper_fusion_matrix(x)
-  }
-}
-
-get_cv_fl_best_betas <- function(.fl_fit) {
-  as.numeric(coef(.fl_fit$fit, lambda = .fl_fit$best_lambda)$beta)
-}
-
-get_pair_fusion_matrix <- function(p) {
-  genlasso::getD1dSparse(p)[c(1:p)[which(c(1:p) %% 2 != 0)], ]
 }
 
 get_upper_fusion_matrix <- function(x) {
