@@ -11,6 +11,8 @@
 ##' @param maxsteps_init max steps for genlasso in initial model
 ##' @param maxsteps_cv max steps for genlasso in cross-validation models
 ##' @param gamma_vec vector of gamma values
+##' @param approx boolean indicating whether
+## to use the approximate solution
 ##' @return list containing information for best cross-validated fit
 ##' @author Bryce Rowland, Frank Ockerman
 ##' @import genlasso
@@ -20,7 +22,7 @@
 ##' @export
 gaudi <- function(fbm_obj, fbm_info, y, gamma_vec, k = 10, ind_train = NULL,
                   snps = NULL, verbose = FALSE, minlam = 0,
-                  maxsteps_init = 2000, maxsteps_cv = 2000 * 10) {
+                  maxsteps_init = 2000, maxsteps_cv = 2000 * 10, approx = FALSE) {
   x_mat <- construct_gaudi(fbm_obj, fbm_info, snps)
   if (is.null(ind_train)) {
     ind_train <- seq_len(nrow(x_mat))
@@ -30,7 +32,8 @@ gaudi <- function(fbm_obj, fbm_info, y, gamma_vec, k = 10, ind_train = NULL,
   mod <- cv_fused_lasso(
     x = x_mat, y = y, n_folds = k, verbose = verbose,
     minlam = minlam, maxsteps_init = maxsteps_init,
-    maxsteps_cv = maxsteps_cv, gamma_vec = gamma_vec
+    maxsteps_cv = maxsteps_cv, gamma_vec = gamma_vec,
+    approx = approx
   )
   return(mod)
 }
@@ -40,7 +43,7 @@ cv_fused_lasso <- function(x, y, n_folds,
                            minlam = 0,
                            maxsteps_init = 2000,
                            maxsteps_cv = 2000 * 10,
-                           gamma_vec) {
+                           gamma_vec, approx = FALSE) {
   gamma_scores <- list(
     gamma = gamma_vec,
     init_fit = vector("list", length(gamma_vec)),
@@ -64,7 +67,8 @@ cv_fused_lasso <- function(x, y, n_folds,
       gamma
     ))
     init_fit <- genlasso::fusedlasso(
-      y = y, X = x, D = penalty_matrix, gamma = gamma, verbose = verbose,
+      y = y, X = x, D = penalty_matrix, gamma = gamma, maxsteps = maxsteps_init,
+      verbose = verbose, approx = approx
     )
     print("Done!")
 
@@ -90,7 +94,8 @@ cv_fused_lasso <- function(x, y, n_folds,
         gamma = gamma,
         minlam = n_ratio * min(init_fit$lambda),
         maxsteps = maxsteps_cv,
-        verbose = verbose
+        verbose = verbose,
+        approx = approx
       )
       fold_pred <- predict.genlasso(fold_fit,
         lambda = lambdas * n_ratio,
