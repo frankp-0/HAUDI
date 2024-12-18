@@ -179,7 +179,7 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
     ## Record SNP info
     fbm_info_new <- data.frame(
       chrom = chrom,
-      pos = pos,
+      pos = rep(pos, each = length(anc_names) + 1),
       ref = ref,
       alt = alt,
       rsid = rsid,
