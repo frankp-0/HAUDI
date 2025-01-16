@@ -114,7 +114,6 @@ lasso <- function(fbm_obj, fbm_info, y, ind_train = NULL,
 ##' Extract population-specific SNP coefficients from a HAUDI model
 ##'
 ##' @title get_beta_haudi
-##' @param fbm_obj object of FBM class
 ##' @param fbm_info data frame containing information
 ##' for FBM (chrom/pos/samples/etc.)
 ##' @param haudi_model an object of class big_sp_list,
@@ -124,7 +123,7 @@ lasso <- function(fbm_obj, fbm_info, y, ind_train = NULL,
 ##' @import bigstatsr
 ##' @import data.table
 ##' @export
-get_beta_haudi <- function(fbm_obj, fbm_info, haudi_model) {
+get_beta_haudi <- function(fbm_info, haudi_model) {
   anc <- snp <- beta_all <- `:=` <- NULL # due to R CMD check
 
   dt_snp <- data.table::data.table(
