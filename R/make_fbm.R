@@ -90,6 +90,7 @@ make_fbm <- function(vcf_file, fbm_pref, chunk_size, rds = NULL,
     fbm_pref,
     length(VariantAnnotation::samples(VariantAnnotation::scanVcfHeader(tab)))
   )
+  attr(anc_fbm, 'samples') <- VariantAnnotation::samples(VariantAnnotation::scanVcfHeader(tab))
 
   fbm_info <- list(
     chrom = c(),
