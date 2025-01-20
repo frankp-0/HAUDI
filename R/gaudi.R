@@ -50,7 +50,8 @@ cv_fused_lasso <- function(x, y, n_folds,
     D = vector("list", length(gamma_vec)),
     best_lambda = rep(0, length(gamma_vec)),
     best_r2 = rep(0, length(gamma_vec)),
-    cv_r2_full = vector("list", length(gamma_vec))
+    cv_r2_full = vector("list", length(gamma_vec)),
+    beta_cmsa = vector("list", length(gamma_vec))
   )
 
   i <- 1
@@ -84,6 +85,7 @@ cv_fused_lasso <- function(x, y, n_folds,
     lambdas <- init_fit$lambda
     fold_scores <- vector("list", length = n_folds)
     n_ratio <- (n_folds - 1) / n_folds
+    fold_beta <- vector("list", length = n_folds)
 
     for (fold in 1:n_folds) {
       print(sprintf("Fitting fold %s", fold))
@@ -102,6 +104,7 @@ cv_fused_lasso <- function(x, y, n_folds,
         Xnew = x[-splits[[fold]], ]
       )$fit
       fold_scores[[fold]] <- cor(fold_pred, y[-splits[[fold]]])^2
+      fold_beta[[fold]] <- coef(fold_fit, lambda = lambdas * n_ratio)$beta[, which.max(fold_scores[[fold]])]
     }
 
     cv_r2_full <- do.call(cbind, fold_scores)
@@ -114,7 +117,7 @@ cv_fused_lasso <- function(x, y, n_folds,
     gamma_scores$cv_r2_full[[i]] <- cv_r2_full
     gamma_scores$best_lambda[i] <- best_lambda
     gamma_scores$best_r2[i] <- best_r2
-
+    gamma_scores$beta_cmsa[[i]] <- rowMeans(do.call(cbind, fold_beta))
     i <- i + 1
   }
 
@@ -127,7 +130,8 @@ cv_fused_lasso <- function(x, y, n_folds,
     "best_gamma" = gamma_scores$gamma[best_index],
     "best_lambda" = gamma_scores$best_lambda[best_index],
     "cv_r2" = gamma_scores$best_r2[best_index],
-    "full_cv_r2" = gamma_scores$cv_r2_full
+    "full_cv_r2" = gamma_scores$cv_r2_full,
+    "beta_cmsa" = gamma_scores$beta_cmsa[[best_index]]
   )
 
   return(out_list)
