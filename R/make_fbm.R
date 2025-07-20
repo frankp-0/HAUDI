@@ -119,10 +119,6 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
   psam <- data.table::fread(plink_files$psam, skip = "#IID")
 
   ## Get variant indices in pvar
-  print("Variants:")
-  print(variants)
-  print("idx_variants")
-  print(idx_variants)
   idx_variants <- resolve_indices(
     ids = variants, idx = idx_variants,
     reference = pvar$ID, label = "variants"
@@ -135,10 +131,12 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
   )
 
   ## Read ancestry tracts
+  print(sprintf("Reading ancestry tracts for %s", ancestry_file))
   dt_tracts <- read_ancestry_tracts(
     file = ancestry_file, file_fmt = ancestry_fmt,
     extend_tracts = TRUE, plink_prefix = plink_prefix
   )
+  print(sprintf("Finished reading ancestry tracts"))
 
   ## Subset samples matching with dt_tracts
   dt_tracts <- dt_tracts[sample %in% psam$`#IID`[idx_samples], ]
@@ -177,6 +175,8 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
     idx_variants,
     ceiling(seq_len(length(idx_variants)) / chunk_size)
   )
+  i <- 1
+  n_chunks <- length(chunks)
   for (chunk in chunks) {
     ## Get new HAUDI-style matrix and associated info
     haudi_chunk <- make_haudi_chunk(
@@ -197,9 +197,10 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 
     ## Append info
     dt_info <- rbind(dt_info, haudi_chunk$info)
-
-    return(list(fbm = fbm, info = dt_info))
+    print(sprintf("finished chunk %s out of %s", i, n_chunks))
+    i <- i + 1
   }
+  return(list(fbm = fbm, info = dt_info))
 }
 
 
@@ -276,7 +277,7 @@ make_fbm <- function(ancestry_files, ancestry_fmt, plink_prefixes,
     idx_samples, anc_names, chunk_size
   )
   dt_info <- result$info
-  if (length(ancestry_files > 1)) {
+  if (length(ancestry_files) > 1) {
     for (i in 2:length(ancestry_files)) {
       result <- add_to_fbm(
         ancestry_file = ancestry_files[i], ancestry_fmt = ancestry_fmt,
