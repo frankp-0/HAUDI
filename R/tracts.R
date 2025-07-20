@@ -129,7 +129,7 @@ read_ancestry_tracts <- function(
     }
     dt_tracts <- read_lanc(file, plink_prefix)
   } else {
-    stop("Please specify either `FLARE` or `RFMix` input")
+    stop("Please specify either `FLARE`, `RFMix`, or `lanc` input")
   }
 
   ## Convert to data.table and sort
@@ -146,4 +146,81 @@ read_ancestry_tracts <- function(
   validate_tracts(dt_tracts)
 
   return(dt_tracts)
+}
+
+
+convert_to_lanc <- function(
+    file, file_fmt,
+    plink_prefix, output) {
+  ## Read inpput to data frame
+  if (file_fmt == "FLARE") {
+    dt_tracts <- rcpp_read_flare(file)
+  } else if (file_fmt == "RFMix") {
+    dt_tracts <- rcpp_read_rfmix(file)
+  } else {
+    stop("Please specify either `FLARE` or `RFMix` input")
+  }
+
+  ## Read plink files
+  pvar <- data.table::fread(paste0(plink_prefix, ".pvar"), skip = "#CHROM")
+  psam <- data.table::fread(paste0(plink_prefix, ".psam"), skip = "#IID")
+
+  ## Convert to data.table and sort
+  dt_tracts <- dt_tracts |> data.table::data.table()
+  data.table::setorder(dt_tracts, sample, hap, chrom, spos)
+
+  ## Check that tracts are valid
+  validate_tracts(dt_tracts)
+
+  ## Extend end of tract and match with pgen
+  dt_tracts[, epos := ifelse(epos == max(epos), max(pvar$POS), epos), by = .(sample, hap, chrom)]
+
+  ## Check samples
+  if (!all(psam$`#IID` %in% dt_tracts$sample)) {
+    stop("Not all pgen samples exist in local ancestry input")
+  }
+  dt_tracts <- dt_tracts[sample %in% psam$`#IID`, ]
+
+
+  ## Query plink and dt_tracts for matches
+  spos_target <- pvar$POS[-nrow(pvar)] + 1
+  spos_target[1] <- spos_target[1] - 1
+  epos_target <- pvar$POS[-1]
+  gr_target <- GenomicRanges::GRanges(
+    seqnames = S4Vectors::Rle(values = pvar$`#CHROM`[-1], lengths = 1),
+    ranges = IRanges::IRanges(spos_target, epos_target)
+  )
+  gr_tracts <- GenomicRanges::makeGRangesFromDataFrame(
+    df = dt_tracts,
+    seqnames.field = "chrom",
+    start.field = "spos",
+    end.field = "epos",
+    keep.extra.columns = TRUE
+  )
+  overlaps <- GenomicRanges::findOverlaps(gr_target, gr_tracts)
+  q_hits <- S4Vectors::queryHits(overlaps)
+  s_hits <- S4Vectors::subjectHits(overlaps)
+  dt_tracts$idx <- sapply(seq_len(nrow(dt_tracts)), function(i) {
+    max(q_hits[s_hits == i]) + 1
+  })
+
+
+  ## Write output
+  header <- paste(nrow(pvar), nrow(psam), sep = " ")
+  write(header, output, append = FALSE)
+  con <- file(output, "a")
+  for (samp in psam$`#IID`) {
+    dt_samp <- dt_tracts[sample == samp, ]
+    samp_idx <- unique(dt_samp)$idx |> sort()
+    anc_mat <- matrix(NA, 2, length(samp_idx))
+    for (i in seq_along(samp_idx)) {
+      anc_mat[1, i:length(samp_idx)] <- dt_samp[hap == 0 & idx >= samp_idx[i], .SD[1]]$ancestry
+      anc_mat[2, i:length(samp_idx)] <- dt_samp[hap == 1 & idx >= samp_idx[i], .SD[1]]$ancestry
+    }
+    anc <- apply(anc_mat, 2, function(x) paste(x, collapse = ""))
+    switches <- paste(samp_idx, anc, sep = ":")
+    line <- paste(switches, collapse = " ")
+    writeLines(line, con = con)
+  }
+  close(con)
 }
