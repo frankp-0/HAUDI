@@ -27,7 +27,7 @@ haudi <- function(fbm_obj, fbm_info, y, gamma,
   if (is.null(snps)) {
     col_keep <- rep(TRUE, ncol(fbm_obj))
   } else {
-    col_keep <- fbm_info$rsid %in% snps
+    col_keep <- fbm_info$id %in% snps
   }
   ## remove reference-ancestry columns
   col_keep <- col_keep & (!fbm_info$anc_ref)
@@ -82,7 +82,7 @@ lasso <- function(fbm_obj, fbm_info, y, ind_train = NULL,
   if (is.null(snps)) {
     col_keep <- rep(TRUE, ncol(fbm_obj))
   } else {
-    col_keep <- fbm_info$rsid %in% snps
+    col_keep <- fbm_info$id %in% snps
   }
   ## remove ancestry-specific columns
   col_keep <- (col_keep) & (fbm_info$anc == "all")
@@ -127,7 +127,7 @@ get_beta_haudi <- function(fbm_info, haudi_model) {
   anc <- snp <- beta_all <- `:=` <- NULL # due to R CMD check
 
   dt_snp <- data.table::data.table(
-    snp = fbm_info$rsid[attr(haudi_model, "ind.col")],
+    snp = fbm_info$id[attr(haudi_model, "ind.col")],
     beta = summary(haudi_model)$beta[[1]],
     anc = fbm_info$anc[attr(haudi_model, "ind.col")]
   )

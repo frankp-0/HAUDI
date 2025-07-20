@@ -2,33 +2,86 @@
 % Please edit documentation in R/make_fbm.R
 \name{make_fbm}
 \alias{make_fbm}
-\title{Make HAUDI-style FBM and return list with FBM and SNP info}
+\title{Make input genetic files for HAUDI/GAUDI}
 \usage{
 make_fbm(
-  vcf_file,
-  fbm_pref,
-  chunk_size,
-  rds = NULL,
-  min_ac = 1,
-  geno_format = "HDS",
-  anc_names
+  ancestry_files,
+  ancestry_fmt,
+  plink_prefixes,
+  fbm_prefix,
+  variants = NULL,
+  idx_variants = NULL,
+  min_ac = 0,
+  samples = NULL,
+  idx_samples = NULL,
+  anc_names = NULL,
+  chunk_size = 400
 )
 }
 \arguments{
-\item{vcf_file}{File path to a VCF file}
+\item{ancestry_files}{A string vector with file paths for
+the local ancestry input}
 
-\item{fbm_pref}{File path to store FBM. Omit the file extension}
+\item{ancestry_fmt}{A string with the local ancestry format
+of \code{ancestry_file}. Either "FLARE", "RFMix", or "lanc"}
 
-\item{chunk_size}{The maximum number of VCF records to read at a time}
+\item{plink_prefixes}{A string vector with the prefixes for
+plink2 file paths}
 
-\item{rds}{Optional file path for an existing RDS  file to append data to}
+\item{fbm_prefix}{A string with the prefix for the
+file path where a new backing file for the FBM
+will be written. This prefix will be appended with ".bk"}
 
-\item{min_ac}{Minimum allele count (per-ancestry) to retain}
+\item{variants}{A character vector of variant IDs to
+include in FBM}
 
-\item{geno_format}{The VCF format field to use ("HDS" or "GT")}
+\item{min_ac}{An integer with a minimum cut off for
+allele counts in each column of the FBM}
 
-\item{anc_names}{vector of labels for each population}
+\item{samples}{A character vector of samples to
+include in FBM}
+
+\item{idx_samples}{An integer vector of sample indices,
+corresponding to plink2 psam input, to include in FBM}
+
+\item{anc_names}{A character vector containing (ordered)
+names for each population in \code{ancestry_file}. If not
+provided, integer values are used}
+
+\item{chunk_size}{An integer with the max number of
+variants to load at a given time while reading the
+plink2 pgen file}
+
+\item{variant_idx}{An integer vector of variant indices,
+corresponding to plink2 pvar input, to include in FBM}
+
+\item{fbm}{An existing \code{FBM.code256} object to which
+results are appended.}
+}
+\value{
+A list containing:
+\code{fbm}: an \code{FBM.code256} object from \code{bigstatsr},
+which links to a file-backed matrix used for
+fittting HAUDI/GAUDI models. Each column contains
+either ancestry-specific genotypes (e.g. number of
+alternate alleles where ancestry is also "pop0") or
+the total genotype. This object also contains a
+\code{samples} attribute ordered according to the samples
+in the matrix rows.
+\code{info} a \code{data.table} containing information
+about columns in the FBM.
+}
 }
 \description{
-Make HAUDI-style FBM and return list with FBM and SNP info
+Processes local ancestry files and corresponding plink2 files,
+producing a file-backed matrix object and associated
+information used for HAUDI/GAUDI.
+}
+\details{
+Only one (or neither) of \code{variants} and \code{idx_variants}
+may be provided. Only one (or neither) of \code{samples} and
+\code{idx_samples} may be provided. Exactly one of \code{fbm_prefix}
+or \code{fbm} may be provided. It is assumed that
+the local ancestry input file and plink2 input
+are sorted by chromosome and position.
 }

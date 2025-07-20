@@ -1,8 +1,8 @@
 Package: HAUDI
 Title: Efficient Lasso Framework for Admixture-Aware Polygenic Risk Scores
-Version: 0.2.8
+Version: 1.0.0.9000
 Authors@R: 
-    person("Franklin", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
+    person("Franklin", "Ockerman", email = "frankpo@unc.edu", role = c("aut", "cre"))
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -11,14 +11,13 @@ RoxygenNote: 7.3.2
 Imports: 
     bigstatsr,
     data.table,
-    GenomeInfoDb,
-    IRanges,
-    SummarizedExperiment,
-    VariantAnnotation,
     genlasso,
     stringr,
     splitTools,
-    Matrix
-Suggests: 
-    testthat (>= 3.0.0)
-Config/testthat/edition: 3
+    Matrix,
+    pgenlibr,
+    GenomicRanges,
+    IRanges,
+    S4Vectors,
+    Rcpp (>= 0.11.0)
+LinkingTo: Rcpp

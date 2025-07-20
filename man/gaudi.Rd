@@ -15,7 +15,8 @@ gaudi(
   verbose = FALSE,
   minlam = 0,
   maxsteps_init = 2000,
-  maxsteps_cv = 2000 * 10
+  maxsteps_cv = 2000 * 10,
+  approx = FALSE
 )
 }
 \arguments{
@@ -41,12 +42,14 @@ for fbm (chrom/pos/samples/etc.)}
 \item{maxsteps_init}{max steps for genlasso in initial model}
 
 \item{maxsteps_cv}{max steps for genlasso in cross-validation models}
+
+\item{approx}{boolean indicating whether}
 }
 \value{
 list containing information for best cross-validated fit
 }
 \description{
-Fit GAUDI model
+gaudi
 }
 \author{
 Bryce Rowland, Frank Ockerman

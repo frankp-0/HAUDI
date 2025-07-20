@@ -4,11 +4,9 @@
 \alias{get_beta_haudi}
 \title{get_beta_haudi}
 \usage{
-get_beta_haudi(fbm_obj, fbm_info, haudi_model)
+get_beta_haudi(fbm_info, haudi_model)
 }
 \arguments{
-\item{fbm_obj}{object of FBM class}
-
 \item{fbm_info}{data frame containing information
 for FBM (chrom/pos/samples/etc.)}
 
