@@ -169,7 +169,6 @@ convert_to_lanc <- function(
     file, file_fmt,
     plink_prefix, output) {
   ## Read input to data frame
-  print(sprintf("Reading ancestry tracts for %s", file))
   if (file_fmt == "FLARE") {
     dt_tracts <- rcpp_read_flare(file)
   } else if (file_fmt == "RFMix") {
@@ -198,14 +197,12 @@ convert_to_lanc <- function(
   }
   dt_tracts <- dt_tracts[sample %in% psam$`#IID`, ]
 
-  print("Matching tracts to pvar")
   dt_tracts$idx <- sapply(seq_len(nrow(dt_tracts)), function(i) {
     which(pvar$POS >= dt_tracts$epos[i])[1]
   })
 
 
   ## Write output
-  print("Writing output")
   header <- paste(nrow(pvar), nrow(psam), sep = " ")
   write(header, output, append = FALSE)
   lines <- sapply(psam$`#IID`, function(samp) {

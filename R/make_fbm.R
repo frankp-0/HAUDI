@@ -162,9 +162,6 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
                        fbm_prefix, variants = NULL, idx_variants = NULL,
                        min_ac = 0, samples = NULL, idx_samples = NULL,
                        anc_names = NULL, chunk_size = 400, fbm = NULL) {
-  ## TODO: add helpful output on how many samples, variants match
-  ## TODO: check if GRanges or just data.table is best for matching regions
-
   ## Verify and read plink2 input files
   plink_files <- verify_plink(plink_prefix)
   pgen <- pgenlibr::NewPgen(plink_files$pgen)
@@ -184,12 +181,18 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
   )
 
   ## Read ancestry tracts
-  print(sprintf("Reading ancestry tracts for %s", ancestry_file))
+  message(sprintf(
+    "[%s] Reading ancestry tracts: %s",
+    format(Sys.time(), "%H:%M:%S"), ancestry_file
+  ))
   dt_tracts <- read_ancestry_tracts(
     file = ancestry_file, file_fmt = ancestry_fmt,
     extend_tracts = TRUE, plink_prefix = plink_prefix
   )
-  print(sprintf("Finished reading ancestry tracts"))
+  message(sprintf(
+    "[%s] Finished reading ancestry tracts",
+    format(Sys.time(), "%H:%M:%S")
+  ))
 
   ## Subset samples matching with dt_tracts
   dt_tracts <- dt_tracts[sample %in% psam$`#IID`[idx_samples], ]
@@ -223,14 +226,26 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
   ## Initialize info
   dt_info <- data.table::data.table()
 
-  ## Loop through chunks
+  ## Prepare chunks
   chunks <- split(
     idx_variants,
     ceiling(seq_len(length(idx_variants)) / chunk_size)
   )
-  i <- 1
   n_chunks <- length(chunks)
-  for (chunk in chunks) {
+  start_time <- Sys.time()
+
+  ## Initialize progress bar
+  pb <- progress::progress_bar$new(
+    format = "[:bar] Chunk :current/:total — ETA: :eta — :message",
+    total = n_chunks,
+    clear = FALSE, width = 70
+  )
+
+  for (i in seq_along(chunks)) {
+    chunk <- chunks[[i]]
+    chunk_start_time <- Sys.time()
+    pb$message(sprintf("Processing chunk %i: %d variants", i, length(chunk)))
+
     ## Get new HAUDI-style matrix and associated info
     haudi_chunk <- make_haudi_chunk(
       chunk = chunk, gr_tracts = gr_tracts,
@@ -250,9 +265,21 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 
     ## Append info
     dt_info <- rbind(dt_info, haudi_chunk$info)
-    print(sprintf("finished chunk %s out of %s", i, n_chunks))
-    i <- i + 1
+
+    elapsed <- difftime(Sys.time(), chunk_start_time, units = "secs")
+    pb$message(sprintf(
+      "Finished (%d/%d columns kept, %.1f sec)",
+      nc_chunk, length(chunk) * (length(anc_names) + 1), elapsed
+    ))
+    pb$tick()
   }
+
+  total_time <- difftime(Sys.time(), start_time, units = "mins")
+  message(sprintf(
+    "\n[%s] All chunks complete in %.1f minutes.",
+    format(Sys.time(), "%H:%M:%S"), total_time
+  ))
+
   return(list(fbm = fbm, info = dt_info))
 }
 
@@ -318,6 +345,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' @importFrom bigstatsr FBM.code256
 #' @importFrom S4Vectors Rle subjectHits
 #' @importFrom IRanges IRanges
+#' @importFrom progress progress_bar
 #' @export
 make_fbm <- function(ancestry_files, ancestry_fmt, plink_prefixes,
                      fbm_prefix, variants = NULL, idx_variants = NULL,
