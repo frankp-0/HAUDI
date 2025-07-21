@@ -1,3 +1,11 @@
+#' Read a ".lanc" format ancestry file
+#'
+#' This utility function read ".lanc" files into a data.table
+#' where each row is a single per-sample/haplotype ancestry tract.
+#'
+#' @param lanc_file A string with the ".lanc" file path
+#' @param plink_prefix A string with the prefix of the plink2 files
+#' @return A data.table
 read_lanc <- function(lanc_file, plink_prefix) {
   pvar <- data.table::fread(paste0(plink_prefix, ".pvar"), skip = "#CHROM")
   psam <- data.table::fread(paste0(plink_prefix, ".psam"), skip = "#IID")
@@ -41,6 +49,9 @@ read_lanc <- function(lanc_file, plink_prefix) {
   return(dt_tracts)
 }
 
+#' Check ancestry tracts are valid
+#'
+#' @param dt_tracts A data.table with ancestry tracts
 validate_tracts <- function(dt_tracts) {
   ## check contiguity
   is_discontig <- dt_tracts[,
@@ -149,10 +160,15 @@ read_ancestry_tracts <- function(
 }
 
 
+#' Convert an "RFMix" or "FLARE" file to ".lanc" format
+#'
+#' @param file A string with the file path for the ancestry file to be converted
+#' @param file_fmt A string with the file format to be converted
+#' (either "FLARE" or "RFMix")
 convert_to_lanc <- function(
     file, file_fmt,
     plink_prefix, output) {
-  ## Read inpput to data frame
+  ## Read input to data frame
   if (file_fmt == "FLARE") {
     dt_tracts <- rcpp_read_flare(file)
   } else if (file_fmt == "RFMix") {

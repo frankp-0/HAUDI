@@ -1,5 +1,22 @@
-## TODO: make test data using admix-kit
-
+#' Match indices from (optional) subset and reference
+#'
+#' This utility function generates a vector of indices
+#' corresponding to `reference`. When `ids`
+#' or `idx` are provided, these are used
+#' to subset the result.
+#'
+#' `ids` and `idx` may not both be provided
+#'
+#' @param ids A character vector which contains
+#' a subset of `reference`
+#' @param idx An integer vector of indices
+#' representing a subset of `reference`
+#' @param reference A vector of values
+#' which we want indices from
+#' @param label A string with what the `reference`
+#' represents (intended to be "samples" or "variants")
+#' @return A vector of sorted indices representing a
+#' (possible) subset of `reference`
 resolve_indices <- function(ids = NULL, idx = NULL,
                             reference, label = "items") {
   if (!is.null(idx) && !is.null(idx)) {
@@ -25,6 +42,11 @@ resolve_indices <- function(ids = NULL, idx = NULL,
   return(sort(idx))
 }
 
+#' Check that plink2 files exist
+#'
+#' @param plink_prefix A string with the prefix
+#' for the plink2 file paths
+#' @return A list of plink2 file paths
 verify_plink <- function(plink_prefix) {
   files <- paste0(plink_prefix, c(".pgen", ".pvar", ".psam")) |> as.list()
   for (file in files) {
@@ -36,6 +58,16 @@ verify_plink <- function(plink_prefix) {
   return(files)
 }
 
+#' Creates a new File-Backed matrix for HAUDI
+#'
+#' This utility function creates an FBM.256 object
+#' with the correct coding to represent genotype
+#' values from 0 to 2.
+#'
+#' @param fbm_prefix A string with the prefix for
+#' the intended FBM file path
+#' @return An FBM object with an attribute "samples"
+#' containing an ordered vector of samples
 initialize_fbm <- function(fbm_prefix, samples) {
   code_dosage <- rep(NA_real_, 256)
   code_dosage[1:201] <- seq(0, 2, length.out = 201)
@@ -53,6 +85,18 @@ initialize_fbm <- function(fbm_prefix, samples) {
   return(fbm)
 }
 
+#' Produces HAUDI matrix and variant info for a single chunk
+#'
+#' @param chunk An integer vector of indices in the pgen file
+#' @param gr_tracts A `GRanges` object corresponding to the ancestry file
+#' @param pgen A `pgen` object produced by `pgenlibr::NewPgen()`
+#' @param pvar A data frame corresponding to the pvar file
+#' @param min_ac An integer with the minimum allele count to
+#' retain columns in the HAUDI matrix
+#' @param anc_names An ordered vector of ancestry names
+#' @param idx_samples An ordered integer vector of samples to
+#' retain from the pgen
+#' @return A list with the HAUDI matrix and variant info for the chunk
 make_haudi_chunk <- function(chunk, gr_tracts, pgen, pvar,
                              min_ac, anc_names, idx_samples) {
   n_samp <- length(idx_samples)
@@ -105,6 +149,15 @@ make_haudi_chunk <- function(chunk, gr_tracts, pgen, pvar,
 }
 
 
+#' Append a new chromosome to the FBM
+#'
+#' @inheritParams make_fbm
+#' @param ancestry_file A string with the file path for a single local
+#' ancestry input file
+#' @param plink_prefix A string with the prefix for a single set of plink2
+#' files
+#' @inherit make_fbm return
+#' @export
 add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
                        fbm_prefix, variants = NULL, idx_variants = NULL,
                        min_ac = 0, samples = NULL, idx_samples = NULL,
@@ -204,12 +257,12 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 }
 
 
-#' Make input genetic files for HAUDI/GAUDI
+#' Make File-Backed Matrix input for HAUDI
 #'
 #' @description
 #' Processes local ancestry files and corresponding plink2 files,
 #' producing a file-backed matrix object and associated
-#' information used for HAUDI/GAUDI.
+#' information used for HAUDI.
 #'
 #' @details
 #' Only one (or neither) of `variants` and `idx_variants`
@@ -223,8 +276,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' the local ancestry input
 #' @param ancestry_fmt A string with the local ancestry format
 #' of `ancestry_file`. Either "FLARE", "RFMix", or "lanc"
-#' @param plink_prefixes A string vector with the prefixes for
-#' plink2 file paths
+#' @param plink_prefixes A string vector with the prefixes for plink2 file paths
 #' @param fbm_prefix A string with the prefix for the
 #' file path where a new backing file for the FBM
 #' will be written. This prefix will be appended with ".bk"
@@ -250,7 +302,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' @return A list containing:
 #'   `fbm`: an `FBM.code256` object from `bigstatsr`,
 #'   which links to a file-backed matrix used for
-#'   fittting HAUDI/GAUDI models. Each column contains
+#'   fittting HAUDI models. Each column contains
 #'   either ancestry-specific genotypes (e.g. number of
 #'   alternate alleles where ancestry is also "pop0") or
 #'   the total genotype. This object also contains a
