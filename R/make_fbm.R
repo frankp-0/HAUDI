@@ -156,6 +156,7 @@ make_haudi_chunk <- function(chunk, gr_tracts, pgen, pvar,
 #' ancestry input file
 #' @param plink_prefix A string with the prefix for a single set of plink2
 #' files
+#' @param idx_variants An integer vector with indices of variants to include in the FBM
 #' @inherit make_fbm return
 #' @export
 add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
@@ -292,11 +293,13 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' information used for HAUDI.
 #'
 #' @details
-#' Only one (or neither) of `variants` and `idx_variants`
-#' may be provided. Only one (or neither) of `samples` and
-#' `idx_samples` may be provided. Exactly one of `fbm_prefix`
-#' or `fbm` may be provided. It is assumed that
-#' the local ancestry input file and plink2 input
+#' Only one (or neither) of `variants` and `idx_variants_list` may be provided.
+#' `variants` is a single character with all variant IDs (across input files),
+#' while `idx_variants_list` is a list where each element is a vector of indices
+#' corresponding to a single set of plink2 files (e.g. each vector is
+#' per-chromosome). Only one (or neither) of `samples` and `idx_samples` may
+#' be provided. Exactly one of `fbm_prefix` or `fbm` may be provided.
+#' It is assumed that the local ancestry input files and plink2 inputs
 #' are sorted by chromosome and position.
 #'
 #' @param ancestry_files A string vector with file paths for
@@ -307,16 +310,17 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' @param fbm_prefix A string with the prefix for the
 #' file path where a new backing file for the FBM
 #' will be written. This prefix will be appended with ".bk"
-#' @param variants A character vector of variant IDs to
-#' include in FBM
-#' @param variant_idx An integer vector of variant indices,
-#' corresponding to plink2 pvar input, to include in FBM
+#' @param variants A character vector with variant IDs to include in the FBM
+#' @param idx_variants_list A list of integer vectors, one per plink2 input
+#' file, containing indices of variants to include in the FBM.
 #' @param min_ac An integer with a minimum cut off for
 #' allele counts in each column of the FBM
 #' @param samples A character vector of samples to
-#' include in FBM
+#' include in the FBM. It is assumed all plink2 files
+#' have the same set of samples.
 #' @param idx_samples An integer vector of sample indices,
-#' corresponding to plink2 psam input, to include in FBM
+#' corresponding to plink2 psam input, to include in the FBM.
+#' It is assumed all plink2 files have the same set of samples.
 #' @param anc_names A character vector containing (ordered)
 #' names for each population in `ancestry_file`. If not
 #' provided, integer values are used
@@ -348,22 +352,21 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' @importFrom progress progress_bar
 #' @export
 make_fbm <- function(ancestry_files, ancestry_fmt, plink_prefixes,
-                     fbm_prefix, variants = NULL, idx_variants = NULL,
+                     fbm_prefix, variants = NULL, idx_variants_list = NULL,
                      min_ac = 0, samples = NULL, idx_samples = NULL,
                      anc_names = NULL, chunk_size = 400) {
   result <- add_to_fbm(
     ancestry_files[1], ancestry_fmt, plink_prefixes[1],
-    fbm_prefix, variants, idx_variants, min_ac, samples,
-    idx_samples, anc_names, chunk_size
+    fbm_prefix, variants, idx_variants_list[[1]],
+    min_ac, samples, idx_samples, anc_names, chunk_size
   )
   dt_info <- result$info
-  ## TODO: make idx_variants per-chromosome
   if (length(ancestry_files) > 1) {
     for (i in 2:length(ancestry_files)) {
       result <- add_to_fbm(
         ancestry_file = ancestry_files[i], ancestry_fmt = ancestry_fmt,
         plink_prefix = plink_prefixes[i], fbm_prefix = NULL,
-        variants = variants, idx_variants = idx_variants,
+        variants = variants, idx_variants = idx_variants_list[[i]],
         min_ac = min_ac, samples = samples,
         idx_samples = idx_samples, anc_names = anc_names,
         chunk_size = chunk_size, fbm = result$fbm
