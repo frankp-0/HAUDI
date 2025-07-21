@@ -19,7 +19,7 @@
 #' (possible) subset of `reference`
 resolve_indices <- function(ids = NULL, idx = NULL,
                             reference, label = "items") {
-  if (!is.null(idx) && !is.null(idx)) {
+  if (!is.null(ids) && !is.null(idx)) {
     stop(paste0(
       "Only one of `", label, "` or `idx_",
       label, "` may be provided"
@@ -357,6 +357,7 @@ make_fbm <- function(ancestry_files, ancestry_fmt, plink_prefixes,
     idx_samples, anc_names, chunk_size
   )
   dt_info <- result$info
+  ## TODO: make idx_variants per-chromosome
   if (length(ancestry_files) > 1) {
     for (i in 2:length(ancestry_files)) {
       result <- add_to_fbm(
