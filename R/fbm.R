@@ -143,6 +143,15 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
     dt_info$chrom <- as.character(dt_info$chrom)
     dt_info$ac <- colSums(mat_haudi)
 
+    ## Set reference ancestry
+    dt_info[, row_id := .I]
+    dt_info[, idx := rep(chunk, length(anc_names) + 1)]
+    max_rows <- dt_info[anc != "all", .SD[which.max(ac)], by = idx][, row_id]
+    dt_info[, anc_ref := FALSE]
+    dt_info[max_rows, anc_ref := TRUE]
+    dt_info$row_id <- dt_info$idx <- NULL
+
+
     ## Filter by ancestry-specific allele count
     mat_haudi <- mat_haudi[, dt_info$ac >= min_ac]
     dt_info <- dt_info[ac >= min_ac, ]
