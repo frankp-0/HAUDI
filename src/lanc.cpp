@@ -6,6 +6,20 @@
 
 using namespace Rcpp;
 
+// Parse lines (excluding header) from a .lanc file into a list with
+// a DataFrame for each sample/line. 
+//
+// Parameters:
+// - lines: A character vector where each element is a line (excluding
+// the header) from a .lanc file
+//
+// Returns:
+// A list of DataFrames. Each element of the list corresponds
+// to a sample/line. DataFrames represent ancestry tracts
+// and contain columns:
+// - "index": The index in the plink2 file where this tract ends
+// - "anc0": The ancestry for haplotype 0 on this tract
+// - "anc1": The ancestry for haplotype 1 on this tract
 // [[Rcpp::export]]
 List rcpp_parse_lanc(CharacterVector lines) {
     int n_samples = lines.size();
@@ -40,6 +54,16 @@ List rcpp_parse_lanc(CharacterVector lines) {
     return result;
 }
 
+// Query indices from a plink2 fileset for ancestry
+//
+// Parameters:
+// - query_indices: A vector of indices in the plink2 fileset
+// - tract_data: A list with ancestry tracts (as returned by rcpp_parse_lanc)
+//
+// Returns:
+// A list with two matrices:
+// - "hap0": ancestry values for each sample (rows) and index (columns) on haplotype 0 
+// - "hap1": ancestry values for each sample (rows) and index (columns) on haplotype 1 
 // [[Rcpp::export]]
 List rcpp_query_tracts(IntegerVector query_indices, List tract_data) {
     int n_samples = tract_data.size();
@@ -63,6 +87,8 @@ List rcpp_query_tracts(IntegerVector query_indices, List tract_data) {
 
         for (int j = 0; j < n_query; ++j) {
             int q = p_queries[j];
+            // Use std::lower_bound instead of forward linear pass
+            // because there are few tracts per sample
             const int* it = std::lower_bound(p_indices, p_indices + n_tract, q);
             int idx = it - p_indices;
             hap0_matrix(i, j) = p_anc0s[idx];

@@ -8,6 +8,7 @@
 #include <vector>
 using namespace Rcpp;
 
+// Struct to represent a CRF point in RFMix msp.tsv file
 struct CRFPoint {
   std::string chrom;
   uint32_t spos;
@@ -39,14 +40,28 @@ struct CRFPoint {
   }
 };
 
+// Struct to represent an ancestry tract
 struct AncestryTract {
   std::string chrom;
   uint32_t spos;
   uint32_t epos;
-  uint8_t ancestry0;
-  uint8_t ancestry1;
+  uint8_t anc0;
+  uint8_t anc1;
 };
 
+// Constructs data frame with ancestry tracts from RFMix input
+//
+// Parameters:
+// - msp_file A string with the file path for an RFMix msp.tsv file
+//
+// Returns:
+// A DataFrame where each row is an ancestry tract, with columns:
+// - "sample": The sample ID
+// - "chrom": The chromosome
+// - "spos": The start position of the tract
+// - "epos": The end position of the tract
+// - "anc0": The ancestry at haplotype 0
+// - "anc1": The ancestry at haplotype 1
 // [[Rcpp::export]]
 DataFrame rcpp_read_rfmix(std::string msp_file) {
   std::ifstream infile(msp_file);
@@ -58,14 +73,16 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
   std::getline(infile, line); // skip population codes
   std::getline(infile, line); // header
 
+  // Get header fields
   std::vector<std::string> hdr_fields;
   std::stringstream ss(line);
   std::string field;
-
   while (std::getline(ss, field, '\t')) {
     hdr_fields.push_back(field);
   }
 
+  // Initialize object that can convert from column index
+  // to sample/haplotype0
   std::vector<std::pair<std::string, size_t>> hap_index_to_sample;
   for (size_t i = 6; i < hdr_fields.size(); ++i) {
     auto &hap_field = hdr_fields[i];
@@ -76,10 +93,10 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
     size_t hap_idx = std::stoul(hap_field.substr(dot_pos + 1));
     hap_index_to_sample.emplace_back(sample, hap_idx);
   }
-
   size_t n_hap = hap_index_to_sample.size();
   assert(n_hap % 2 == 0); // must be even for hap0 and hap1 pairs
 
+  // Initialize ancestry tracts
   std::unordered_map<std::string, std::vector<AncestryTract>> sample_tracts;
   std::vector<uint8_t> prev_anc(n_hap, 0);
   std::vector<uint32_t> prev_spos(n_hap, 0);
@@ -87,9 +104,12 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
   std::string cur_chrom = "chr0";
   bool is_first_crf = true;
 
+  // Loop through lines in RFMix file
   while (std::getline(infile, line)) {
+    // Construct CRF point
     CRFPoint crf = CRFPoint::from_msp_line(line, n_hap);
 
+    // Flush tracts if new chromosome (this shouldn't happen)
     if (crf.chrom != cur_chrom && !is_first_crf) {
       for (size_t i = 0; i < n_hap; i += 2) {
         auto &[sample_name0, hap0] = hap_index_to_sample[i];
@@ -106,6 +126,7 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
 
     cur_epos = crf.epos;
 
+    // Start tracts if first CRF point
     if (is_first_crf) {
       is_first_crf = false;
       prev_anc = crf.ancestries;
@@ -113,6 +134,8 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
       cur_chrom = crf.chrom;
     } else {
       for (size_t i = 0; i < n_hap; i += 2) {
+        // Close out tract and start new one if ancestry switches
+        // for either haplotype
         if (crf.ancestries[i] != prev_anc[i] ||
             crf.ancestries[i + 1] != prev_anc[i + 1]) {
           auto &[sample_name0, hap0] = hap_index_to_sample[i];
@@ -131,6 +154,7 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
     }
   }
 
+  // Close out all open tracts after file ends
   for (size_t i = 0; i < n_hap; i += 2) {
     auto &[sample_name0, hap0] = hap_index_to_sample[i];
     auto &[sample_name1, hap1] = hap_index_to_sample[i + 1];
@@ -140,10 +164,10 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
         {cur_chrom, prev_spos[i], cur_epos, prev_anc[i], prev_anc[i + 1]});
   }
 
-  // Flatten to DataFrame
+  // Return tracts in DataFrame
   std::vector<std::string> samples, chroms;
   std::vector<uint32_t> spos_vec, epos_vec;
-  std::vector<int> ancestry0_vec, ancestry1_vec;
+  std::vector<int> anc0_vec, anc1_vec;
 
   for (const auto &[sample, tracts] : sample_tracts) {
     for (const auto &tract : tracts) {
@@ -151,8 +175,8 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
       chroms.push_back(tract.chrom);
       spos_vec.push_back(tract.spos);
       epos_vec.push_back(tract.epos);
-      ancestry0_vec.push_back(tract.ancestry0);
-      ancestry1_vec.push_back(tract.ancestry1);
+      anc0_vec.push_back(tract.anc0);
+      anc1_vec.push_back(tract.anc1);
     }
   }
 
@@ -160,7 +184,7 @@ DataFrame rcpp_read_rfmix(std::string msp_file) {
                            _["chrom"] = chroms,
                            _["spos"] = spos_vec,
                            _["epos"] = epos_vec,
-                           _["ancestry0"] = ancestry0_vec,
-                           _["ancestry1"] = ancestry1_vec);
+                           _["anc0"] = anc0_vec,
+                           _["anc1"] = anc1_vec);
 }
 
