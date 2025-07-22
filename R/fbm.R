@@ -169,7 +169,8 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #' ancestry input file
 #' @param plink_prefix A string with the prefix for a single set of plink2
 #' files
-#' @param idx_variants An integer vector with indices of variants to include in the FBM
+#' @param idx_variants An integer vector with indices of variants to include
+#' in the FBM
 #' @inherit make_fbm return
 #' @export
 add_to_fbm <- function(lanc_file, plink_prefix,
@@ -337,7 +338,6 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 #'   in the matrix rows.
 #'   `info` a `data.table` containing information
 #'   about columns in the FBM.
-#' }
 #'
 #' @importFrom pgenlibr NewPgen ReadAlleles AlleleCodeBuf
 #' @importFrom data.table data.table setorder fread

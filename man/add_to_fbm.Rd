@@ -31,7 +31,8 @@ will be written. This prefix will be appended with ".bk"}
 
 \item{variants}{A character vector with variant IDs to include in the FBM}
 
-\item{idx_variants}{An integer vector with indices of variants to include in the FBM}
+\item{idx_variants}{An integer vector with indices of variants to include
+in the FBM}
 
 \item{min_ac}{An integer with a minimum cut off for
 allele counts in each column of the FBM}
@@ -67,7 +68,6 @@ the total genotype. This object also contains a
 in the matrix rows.
 \code{info} a \code{data.table} containing information
 about columns in the FBM.
-}
 }
 \description{
 Append a new chromosome to the FBM

@@ -67,7 +67,6 @@ in the matrix rows.
 \code{info} a \code{data.table} containing information
 about columns in the FBM.
 }
-}
 \description{
 Processes .lanc local ancestry files and corresponding plink2 files,
 producing a file-backed matrix object and associated
