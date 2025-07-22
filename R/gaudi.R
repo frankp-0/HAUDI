@@ -13,27 +13,36 @@
 ##' @param gamma_vec vector of gamma values
 ##' @param approx boolean indicating whether
 ## to use the approximate solution
+## @param splits a list of k vectors indicating the indices (in the training set)
+## for inner-CV folds
 ##' @return list containing information for best cross-validated fit
 ##' @author Bryce Rowland, Frank Ockerman
 ##' @import genlasso
-##' @import splitTools
 ##' @import stringr
 ##' @import Matrix
 ##' @export
 gaudi <- function(fbm_obj, fbm_info, y, gamma_vec, k = 10, ind_train = NULL,
                   snps = NULL, verbose = FALSE, minlam = 0,
-                  maxsteps_init = 2000, maxsteps_cv = 2000 * 10, approx = FALSE) {
+                  maxsteps_init = 2000, maxsteps_cv = 2000 * 10, approx = FALSE,
+                  splits = NULL) {
   x_mat <- construct_gaudi(fbm_obj, fbm_info, snps)
   if (is.null(ind_train)) {
     ind_train <- seq_len(nrow(x_mat))
   }
   x_mat <- x_mat[ind_train, ]
   y <- y[ind_train]
+
+  if (is.null(splits)) {
+    ind_sets <- sample(ind_train)
+    ind_sets <- as.numeric(cut(seq_along(ind_sets), k))[order(ind_sets)]
+    splits <- lapply(1:k, function(cv_fold) which(ind_sets != cv_fold))
+  }
+
   mod <- cv_fused_lasso(
     x = x_mat, y = y, n_folds = k, verbose = verbose,
     minlam = minlam, maxsteps_init = maxsteps_init,
     maxsteps_cv = maxsteps_cv, gamma_vec = gamma_vec,
-    approx = approx
+    approx = approx, splits = splits
   )
   return(mod)
 }
@@ -43,7 +52,8 @@ cv_fused_lasso <- function(x, y, n_folds,
                            minlam = 0,
                            maxsteps_init = 2000,
                            maxsteps_cv = 2000 * 10,
-                           gamma_vec, approx = FALSE) {
+                           gamma_vec, approx = FALSE,
+                           splits) {
   gamma_scores <- list(
     gamma = gamma_vec,
     init_fit = vector("list", length(gamma_vec)),
@@ -73,11 +83,6 @@ cv_fused_lasso <- function(x, y, n_folds,
     )
     print("Done!")
 
-    splits <- splitTools::create_folds(
-      y = seq_len(nrow(x)),
-      k = n_folds,
-      type = "basic"
-    )
     ## Set minlam for each fold to the min lam from the initial fit.
     ## Then, below we specify to run the cv fold models to the
     ## minimum lambda, and specify a large number of iterations to
