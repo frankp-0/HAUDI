@@ -2,7 +2,7 @@
 % Please edit documentation in R/tracts.R
 \name{validate_tracts}
 \alias{validate_tracts}
-\title{Check ancestry tracts are valid}
+\title{Check that ancestry tracts are valid}
 \usage{
 validate_tracts(dt_tracts)
 }
@@ -10,5 +10,5 @@ validate_tracts(dt_tracts)
 \item{dt_tracts}{A data.table with ancestry tracts}
 }
 \description{
-Check ancestry tracts are valid
+Check that ancestry tracts are valid
 }

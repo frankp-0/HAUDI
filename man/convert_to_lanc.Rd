@@ -2,7 +2,7 @@
 % Please edit documentation in R/tracts.R
 \name{convert_to_lanc}
 \alias{convert_to_lanc}
-\title{Convert an "RFMix" or "FLARE" file to ".lanc" format}
+\title{Convert an "RFMix" or "FLARE" file ancestry file to ".lanc" format}
 \usage{
 convert_to_lanc(file, file_fmt, plink_prefix, output)
 }
@@ -11,7 +11,24 @@ convert_to_lanc(file, file_fmt, plink_prefix, output)
 
 \item{file_fmt}{A string with the file format to be converted
 (either "FLARE" or "RFMix")}
+
+\item{plink_prefix}{A string with the plink2 prefix file}
+
+\item{output}{A string with the file path to save the new ".lanc" file}
 }
 \description{
-Convert an "RFMix" or "FLARE" file to ".lanc" format
+\code{convert_to_lanc} processes a local ancestry input file
+from RFMIx or FLARE and splits it into ancestry tracts per-sample,
+generating a file with the ".lanc" format defined by \code{Admix-kit}.
+}
+\details{
+This function currently supports only RFMix or FLARE input.
+It is assumed that the input ancestry file is sorted by position
+and corresponds to a single chromosome. Samples and positions
+are matched according to the plink2 pvar and psam files
+defined by \code{plink_prefix}. For RFMix, it is assumed that CRF points
+are contiguous. For FLARE input, which may not be not contiguous,
+ancestry is imputed to the midpoint between variant positions.
+After the ancestry input files are processed into tracts,
+they are written in ".lanc" format to \code{output},
 }

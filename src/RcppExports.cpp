@@ -21,6 +21,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcpp_parse_lanc
+List rcpp_parse_lanc(CharacterVector lines);
+RcppExport SEXP _HAUDI_rcpp_parse_lanc(SEXP linesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< CharacterVector >::type lines(linesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_parse_lanc(lines));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcpp_query_tracts
+List rcpp_query_tracts(IntegerVector query_indices, List tract_data);
+RcppExport SEXP _HAUDI_rcpp_query_tracts(SEXP query_indicesSEXP, SEXP tract_dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type query_indices(query_indicesSEXP);
+    Rcpp::traits::input_parameter< List >::type tract_data(tract_dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_query_tracts(query_indices, tract_data));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_read_rfmix
 DataFrame rcpp_read_rfmix(std::string msp_file);
 RcppExport SEXP _HAUDI_rcpp_read_rfmix(SEXP msp_fileSEXP) {
@@ -35,6 +58,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_HAUDI_rcpp_read_flare", (DL_FUNC) &_HAUDI_rcpp_read_flare, 1},
+    {"_HAUDI_rcpp_parse_lanc", (DL_FUNC) &_HAUDI_rcpp_parse_lanc, 1},
+    {"_HAUDI_rcpp_query_tracts", (DL_FUNC) &_HAUDI_rcpp_query_tracts, 2},
     {"_HAUDI_rcpp_read_rfmix", (DL_FUNC) &_HAUDI_rcpp_read_rfmix, 1},
     {NULL, NULL, 0}
 };

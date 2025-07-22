@@ -90,89 +90,64 @@ initialize_fbm <- function(fbm_prefix, samples) {
 #' @param chunk An integer vector of indices in the pgen file
 #' @param pgen A `pgen` object produced by `pgenlibr::NewPgen()`
 #' @param pvar A data frame corresponding to the pvar file
-#' @param dt_tracts A data frame with ancestry tracts
+#' @param tracts A list of data.frames, where each element corresponds to a
+#' sample and has columns `index` (representing indices
+#' in a plink2 pvar file) and "anc0" and "anc1", corresponding to ancestries for
+#' each haplotype
 #' @param min_ac An integer with the minimum allele count to
 #' retain columns in the HAUDI matrix
 #' @param anc_names An ordered vector of ancestry names
 #' @param idx_samples An ordered integer vector of samples to
 #' retain from the pgen
 #' @return A list with the HAUDI matrix and variant info for the chunk
-make_haudi_chunk <- function(chunk, pgen, pvar, dt_tracts,
+make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
                              min_ac, anc_names, idx_samples) {
-  n_samp <- length(idx_samples)
-
-  gr_target <- GenomicRanges::GRanges(
-    seqnames = S4Vectors::Rle(values = pvar$`#CHROM`[chunk], lengths = 1),
-    ranges = IRanges::IRanges(pvar$POS[chunk], pvar$POS[chunk]),
-  )
-
-  gr_tracts0 <- GenomicRanges::makeGRangesFromDataFrame(
-    df = dt_tracts[
-      spos <= max(pvar$POS[chunk]) &
-        epos >= min(pvar$POS[chunk]) &
-        hap == 0,
-    ],
-    seqnames.field = "chrom",
-    start.field = "spos",
-    end.field = "epos",
-    keep.extra.columns = TRUE
-  )
-  gr_tracts1 <- GenomicRanges::makeGRangesFromDataFrame(
-    df = dt_tracts[
-      spos <= max(pvar$POS[chunk]) &
-        epos >= min(pvar$POS[chunk]) &
-        hap == 1,
-    ],
-    seqnames.field = "chrom",
-    start.field = "spos",
-    end.field = "epos",
-    keep.extra.columns = TRUE
-  )
-
-  ## Find matching tract per-sample/hap for each variant in gr_target
-  overlaps0 <- GenomicRanges::findOverlaps(gr_target, gr_tracts0)
-  overlaps1 <- GenomicRanges::findOverlaps(gr_target, gr_tracts1)
-
-  ## Per-haplotype ancestry
-  anc0 <- matrix(
-    gr_tracts0[S4Vectors::subjectHits(overlaps0)]$ancestry,
-    nrow = n_samp
-  )
-  anc1 <- matrix(
-    gr_tracts1[S4Vectors::subjectHits(overlaps1)]$ancestry,
-    nrow = n_samp
-  )
+  ## Get ancestry matrices
+  time_anc <- system.time({
+    anc_mats <- query_tracts(chunk, tracts)
+  })
+  message(sprintf("Anc query time: %s", time_anc[3]))
 
   ## Per-haplotype alleles
-  gen0 <- gen1 <- matrix(0, n_samp, length(chunk))
-  buf <- pgenlibr::AlleleCodeBuf(pgen)
-  for (i in seq_along(chunk)) {
-    pgenlibr::ReadAlleles(pgen, acbuf = buf, variant_num = chunk[i])
-    gen0[, i] <- buf[1, idx_samples]
-    gen1[, i] <- buf[2, idx_samples]
-  }
+  n_samp <- length(idx_samples)
+  time_gen <- system.time({
+    gen0 <- gen1 <- matrix(0, n_samp, length(chunk))
+    buf <- pgenlibr::AlleleCodeBuf(pgen)
+    for (i in seq_along(chunk)) {
+      pgenlibr::ReadAlleles(pgen, acbuf = buf, variant_num = chunk[i])
+      gen0[, i] <- buf[1, idx_samples]
+      gen1[, i] <- buf[2, idx_samples]
+    }
+  })
+  message(sprintf("Gen query time: %s", time_gen[3]))
 
   ## Per-ancestry genotypes and total genotypes
-  mat_haudi <- lapply(0:(length(anc_names) - 1), function(anc) {
-    gen0 * (anc0 == anc) + gen1 * (anc1 == anc)
-  }) |>
-    do.call(what = "cbind") |>
-    cbind(gen0 + gen1)
+  time_haudi <- system.time({
+    mat_haudi <- lapply(0:(length(anc_names) - 1), function(anc) {
+      gen0 * (anc_mats$hap0 == anc) + gen1 * (anc_mats$hap1 == anc)
+    }) |>
+      do.call(what = "cbind") |>
+      cbind(gen0 + gen1)
+  })
+  message(sprintf("HAUDI time: %s", time_haudi[3]))
 
-  dt_info <- data.table::data.table(
-    chrom = rep(pvar[chunk, ]$`#CHROM`, length(anc_names) + 1),
-    pos = rep(pvar[chunk, ]$POS, length(anc_names) + 1),
-    id = rep(pvar[chunk, ]$ID, length(anc_names) + 1),
-    ref = rep(pvar[chunk, ]$REF, length(anc_names) + 1),
-    alt = rep(pvar[chunk, ]$ALT, length(anc_names) + 1),
-    anc = c(rep(anc_names, each = length(chunk)), rep("all", length(chunk)))
-  )
-  dt_info$chrom <- as.character(dt_info$chrom)
-  dt_info$ac <- colSums(mat_haudi)
+  time_process <- system.time({
+    dt_info <- data.table::data.table(
+      chrom = rep(pvar[chunk, ]$`#CHROM`, length(anc_names) + 1),
+      pos = rep(pvar[chunk, ]$POS, length(anc_names) + 1),
+      id = rep(pvar[chunk, ]$ID, length(anc_names) + 1),
+      ref = rep(pvar[chunk, ]$REF, length(anc_names) + 1),
+      alt = rep(pvar[chunk, ]$ALT, length(anc_names) + 1),
+      anc = c(rep(anc_names, each = length(chunk)), rep("all", length(chunk)))
+    )
+    dt_info$chrom <- as.character(dt_info$chrom)
+    dt_info$ac <- colSums(mat_haudi)
 
-  ## Filter by ancestry-specific allele count
-  mat_haudi <- mat_haudi[, dt_info$ac >= min_ac]
-  dt_info <- dt_info[ac >= min_ac, ]
+    ## Filter by ancestry-specific allele count
+    mat_haudi <- mat_haudi[, dt_info$ac >= min_ac]
+    dt_info <- dt_info[ac >= min_ac, ]
+  })
+  message(sprintf("Process time: %s", time_process[3]))
 
   return(list(mat = mat_haudi, info = dt_info))
 }
@@ -181,14 +156,14 @@ make_haudi_chunk <- function(chunk, pgen, pvar, dt_tracts,
 #' Append a new chromosome to the FBM
 #'
 #' @inheritParams make_fbm
-#' @param ancestry_file A string with the file path for a single local
+#' @param lanc_file A string with the file path for a single local
 #' ancestry input file
 #' @param plink_prefix A string with the prefix for a single set of plink2
 #' files
 #' @param idx_variants An integer vector with indices of variants to include in the FBM
 #' @inherit make_fbm return
 #' @export
-add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
+add_to_fbm <- function(lanc_file, plink_prefix,
                        fbm_prefix, variants = NULL, idx_variants = NULL,
                        min_ac = 0, samples = NULL, idx_samples = NULL,
                        anc_names = NULL, chunk_size = 400, fbm = NULL) {
@@ -213,30 +188,24 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
   ## Read ancestry tracts
   message(sprintf(
     "[%s] Reading ancestry tracts: %s",
-    format(Sys.time(), "%H:%M:%S"), ancestry_file
+    format(Sys.time(), "%H:%M:%S"), lanc_file
   ))
-  dt_tracts <- read_ancestry_tracts(
-    file = ancestry_file, file_fmt = ancestry_fmt,
-    extend_tracts = TRUE, plink_prefix = plink_prefix
-  )
+  tracts <- read_lanc(lanc_file)
   message(sprintf(
     "[%s] Finished reading ancestry tracts",
     format(Sys.time(), "%H:%M:%S")
   ))
 
-  ## Subset samples matching with dt_tracts
-  dt_tracts <- dt_tracts[sample %in% psam$`#IID`[idx_samples], ]
-  dt_tracts$sample <- factor(dt_tracts$sample,
-    levels = psam$`#IID`[idx_samples]
-  )
-  idx_samples <- idx_samples[
-    which(psam$`#IID`[idx_samples] %in% dt_tracts$sample)
-  ]
-  data.table::setorder(dt_tracts, by = sample, hap, chrom, spos)
+  ## Subset samples matching with tracts
+  tracts <- tracts[idx_samples]
 
   ## Get ordered ancestries
   if (is.null(anc_names)) {
-    anc_names <- unique(dt_tracts$ancestry)
+    anc_names <- sapply(tracts, function(x) c(x$anc0, x$anc1)) |>
+      unlist() |>
+      unique() |>
+      sort() |>
+      as.character()
   }
 
   ## Initialize FBM
@@ -270,7 +239,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 
     ## Get new HAUDI-style matrix and associated info
     haudi_chunk <- make_haudi_chunk(
-      chunk = chunk, pgen = pgen, pvar = pvar, dt_tracts = dt_tracts, min_ac = min_ac,
+      chunk = chunk, pgen = pgen, pvar = pvar, tracts = tracts, min_ac = min_ac,
       anc_names = anc_names, idx_samples = idx_samples
     )
 
@@ -308,7 +277,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' Make File-Backed Matrix input for HAUDI
 #'
 #' @description
-#' Processes local ancestry files and corresponding plink2 files,
+#' Processes .lanc local ancestry files and corresponding plink2 files,
 #' producing a file-backed matrix object and associated
 #' information used for HAUDI.
 #'
@@ -322,10 +291,8 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' It is assumed that the local ancestry input files and plink2 inputs
 #' are sorted by chromosome and position.
 #'
-#' @param ancestry_files A string vector with file paths for
+#' @param lanc_files A string vector with file paths for
 #' the local ancestry input
-#' @param ancestry_fmt A string with the local ancestry format
-#' of `ancestry_file`. Either "FLARE", "RFMix", or "lanc"
 #' @param plink_prefixes A string vector with the prefixes for plink2 file paths
 #' @param fbm_prefix A string with the prefix for the
 #' file path where a new backing file for the FBM
@@ -371,20 +338,20 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 #' @importFrom IRanges IRanges
 #' @importFrom progress progress_bar
 #' @export
-make_fbm <- function(ancestry_files, ancestry_fmt, plink_prefixes,
+make_fbm <- function(lanc_files, plink_prefixes,
                      fbm_prefix, variants = NULL, idx_variants_list = NULL,
                      min_ac = 0, samples = NULL, idx_samples = NULL,
                      anc_names = NULL, chunk_size = 400) {
   result <- add_to_fbm(
-    ancestry_files[1], ancestry_fmt, plink_prefixes[1],
+    lanc_files[1], plink_prefixes[1],
     fbm_prefix, variants, idx_variants_list[[1]],
     min_ac, samples, idx_samples, anc_names, chunk_size
   )
   dt_info <- result$info
-  if (length(ancestry_files) > 1) {
-    for (i in 2:length(ancestry_files)) {
+  if (length(lanc_files) > 1) {
+    for (i in 2:length(lanc_files)) {
       result <- add_to_fbm(
-        ancestry_file = ancestry_files[i], ancestry_fmt = ancestry_fmt,
+        lanc_file = lanc_files[i],
         plink_prefix = plink_prefixes[i], fbm_prefix = NULL,
         variants = variants, idx_variants = idx_variants_list[[i]],
         min_ac = min_ac, samples = samples,

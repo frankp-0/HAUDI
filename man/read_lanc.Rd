@@ -2,19 +2,19 @@
 % Please edit documentation in R/tracts.R
 \name{read_lanc}
 \alias{read_lanc}
-\title{Read a ".lanc" format ancestry file}
+\title{Read .lanc file into list of tracts}
 \usage{
-read_lanc(lanc_file, plink_prefix)
+read_lanc(lanc_file)
 }
 \arguments{
-\item{lanc_file}{A string with the ".lanc" file path}
-
-\item{plink_prefix}{A string with the prefix of the plink2 files}
+\item{lanc_file}{A string with the file path to a .lanc file from \code{Admix-kit}}
 }
 \value{
-A data.table
+A list of data.frames, where each element corresponds to a sample,
+and has columns \code{index} (representing indices
+in a plink2 pvar file) and "anc0" and "anc1", corresponding to ancestries for
+each haplotype.
 }
 \description{
-This utility function read ".lanc" files into a data.table
-where each row is a single per-sample/haplotype ancestry tract.
+Read .lanc file into list of tracts
 }

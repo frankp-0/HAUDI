@@ -17,7 +17,8 @@ struct AncestryTract {
   std::string chrom;
   uint32_t spos;
   uint32_t epos;
-  uint8_t ancestry;
+  uint8_t ancestry0;
+  uint8_t ancestry1;
 };
 
 struct VCFRecord {
@@ -36,14 +37,12 @@ std::string gz_readline(gzFile file) {
   char buffer[chunk_size];
   std::string line;
 
-  // keep adding buffer to new line until end of FLARE line is reached
   while (gzgets(file, buffer, chunk_size)) {
     line += buffer;
     if (!line.empty() && line.back() == '\n')
       break;
   }
 
-  // strip \n from line
   while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) {
     line.pop_back();
   }
@@ -75,16 +74,14 @@ extract_AN1_AN2(const std::string &sample_field,
       int val = std::stoi(tokens[an1_idx]);
       if (val >= 0 && val <= 255)
         an1 = val;
-    } catch (...) {
-    }
+    } catch (...) {}
   }
   if (an2_idx >= 0 && an2_idx < (int)tokens.size()) {
     try {
       int val = std::stoi(tokens[an2_idx]);
       if (val >= 0 && val <= 255)
         an2 = val;
-    } catch (...) {
-    }
+    } catch (...) {}
   }
   return {an1, an2};
 }
@@ -112,17 +109,15 @@ void finalize_open_tracts(
     const std::vector<std::string> &sample_ids,
     const std::vector<uint8_t> &prev_anc,
     const std::vector<uint32_t> &prev_spos,
-    std::unordered_map<std::string, std::array<std::vector<AncestryTract>, 2>>
-        &sample_tracts,
+    std::unordered_map<std::string, std::vector<AncestryTract>> &sample_tracts,
     const std::string &chrom, uint32_t final_pos) {
   for (size_t i = 0; i < sample_ids.size(); ++i) {
     const std::string &sample = sample_ids[i];
-    for (size_t hap = 0; hap < 2; ++hap) {
-      size_t idx = i * 2 + hap;
-      if (prev_anc[idx] != 255) {
-        sample_tracts[sample][hap].push_back(
-            {chrom, prev_spos[idx], final_pos, prev_anc[idx]});
-      }
+    uint8_t anc0 = prev_anc[i * 2];
+    uint8_t anc1 = prev_anc[i * 2 + 1];
+    if (anc0 != 255 || anc1 != 255) {
+      sample_tracts[sample].push_back(
+        {chrom, prev_spos[i * 2], final_pos, anc0, anc1});
     }
   }
 }
@@ -133,10 +128,9 @@ DataFrame rcpp_read_flare(std::string flare_file) {
   gzFile file = gzopen(flare_file.c_str(), "rb");
   if (!file) {
     std::cerr << "Failed to open input VCF file.\n";
-    return 1;
+    return DataFrame::create();  // Return empty DataFrame
   }
 
-  // skip header lines until column definition
   std::string line;
   bool found_header = false;
   while (!(line = gz_readline(file)).empty()) {
@@ -148,11 +142,9 @@ DataFrame rcpp_read_flare(std::string flare_file) {
   if (!found_header) {
     std::cerr << "Missing #CHROM header line.\n";
     gzclose(file);
-    return 1;
+    return DataFrame::create();
   }
 
-  // process header, extracting index of chromosome,
-  // position, and format on future lines
   std::vector<std::string> header_fields = split(line, '\t');
   int chrom_idx = -1, pos_idx = -1, format_idx = -1;
   for (size_t i = 0; i < header_fields.size(); ++i) {
@@ -166,19 +158,16 @@ DataFrame rcpp_read_flare(std::string flare_file) {
   if (chrom_idx == -1 || pos_idx == -1 || format_idx == -1) {
     std::cerr << "Missing essential VCF columns.\n";
     gzclose(file);
-    return 1;
+    return DataFrame::create();
   }
 
-  // extract sample IDs
   std::vector<std::string> sample_ids;
   for (size_t i = format_idx + 1; i < header_fields.size(); ++i) {
     sample_ids.push_back(header_fields[i]);
   }
 
-  // initialize values
   int n_samples = sample_ids.size();
-  std::unordered_map<std::string, std::array<std::vector<AncestryTract>, 2>>
-      sample_tracts;
+  std::unordered_map<std::string, std::vector<AncestryTract>> sample_tracts;
   std::vector<uint8_t> prev_anc(n_samples * 2, 255);
   std::vector<uint32_t> prev_spos(n_samples * 2, 0);
   uint32_t cur_pos = 0;
@@ -190,17 +179,14 @@ DataFrame rcpp_read_flare(std::string flare_file) {
     if (line.empty() || line[0] == '#')
       continue;
 
-    // split line into elements
     std::vector<std::string> fields = split(line, '\t');
     if (fields.size() < format_idx + 1 + n_samples)
       continue;
 
-    // get current chromosome, position
     std::string chrom = fields[chrom_idx];
     uint32_t pos = std::stoul(fields[pos_idx]);
 
     std::vector<std::string> format_fields = split(fields[format_idx], ':');
-    // check where ancestry fields occur
     int an1_idx = -1, an2_idx = -1;
     for (size_t i = 0; i < format_fields.size(); ++i) {
       if (format_fields[i] == "AN1")
@@ -209,16 +195,13 @@ DataFrame rcpp_read_flare(std::string flare_file) {
         an2_idx = i;
     }
 
-    // build current VCF record
     VCFRecord record =
         construct_vcf_record(fields, format_fields, an1_idx, an2_idx,
                              format_idx, n_samples, chrom, pos);
 
-    // record previous and current record's position
     prev_pos = cur_pos;
     cur_pos = pos;
 
-    // update info and start new tracts if first record
     if (is_first_record) {
       for (size_t i = 0; i < n_samples; ++i) {
         prev_spos[i * 2] = pos;
@@ -231,7 +214,6 @@ DataFrame rcpp_read_flare(std::string flare_file) {
       continue;
     }
 
-    // close open tracts and update info if new chromosome
     if (chrom != cur_chrom) {
       finalize_open_tracts(sample_ids, prev_anc, prev_spos, sample_tracts,
                            cur_chrom, pos - 1);
@@ -245,49 +227,49 @@ DataFrame rcpp_read_flare(std::string flare_file) {
       continue;
     }
 
-    // push new tracts and update spos, prev_anc where ancestry changes
     for (size_t i = 0; i < n_samples; ++i) {
       const std::string &sample = sample_ids[i];
-      for (size_t hap = 0; hap < 2; ++hap) {
-        size_t idx = i * 2 + hap;
-        uint8_t new_anc =
-            hap == 0 ? record.ancestry_hap0[i] : record.ancestry_hap1[i];
-        if (new_anc != prev_anc[idx]) {
-          uint32_t midpoint = prev_pos + (cur_pos - prev_pos) / 2;
-          sample_tracts[sample][hap].push_back(
-              {chrom, prev_spos[idx], midpoint, prev_anc[idx]});
-          prev_spos[idx] = midpoint + 1;
-          prev_anc[idx] = new_anc;
-        }
+      size_t idx0 = i * 2;
+      size_t idx1 = i * 2 + 1;
+      uint8_t new_anc0 = record.ancestry_hap0[i];
+      uint8_t new_anc1 = record.ancestry_hap1[i];
+      if ((new_anc0 != prev_anc[idx0]) || (new_anc1 != prev_anc[idx1])) {
+        uint32_t midpoint = prev_pos + (cur_pos - prev_pos) / 2;
+        sample_tracts[sample].push_back({
+          chrom, prev_spos[idx0], midpoint, prev_anc[idx0], prev_anc[idx1]
+        });
+        prev_spos[idx0] = midpoint + 1;
+        prev_anc[idx0] = new_anc0;
+        prev_anc[idx1] = new_anc1;
       }
     }
   }
   gzclose(file);
 
-  // close out tracts when file ends
   finalize_open_tracts(sample_ids, prev_anc, prev_spos, sample_tracts,
                        cur_chrom, cur_pos);
 
-  // Flatten and return as DataFrame
   std::vector<std::string> samples, chroms;
-  std::vector<int> haps;
   std::vector<uint32_t> spos_vec, epos_vec;
-  std::vector<int> ancestry_vec;
+  std::vector<int> ancestry_hap0_vec, ancestry_hap1_vec;
 
-  for (const auto &[sample, tracts_by_hap] : sample_tracts) {
-    for (size_t hap = 0; hap < 2; ++hap) {
-      for (const auto &tract : tracts_by_hap[hap]) {
-        samples.push_back(sample);
-        haps.push_back(hap);
-        chroms.push_back(tract.chrom);
-        spos_vec.push_back(tract.spos);
-        epos_vec.push_back(tract.epos);
-        ancestry_vec.push_back(tract.ancestry);
-      }
+  for (const auto &[sample, tracts] : sample_tracts) {
+    for (const auto &tract : tracts) {
+      samples.push_back(sample);
+      chroms.push_back(tract.chrom);
+      spos_vec.push_back(tract.spos);
+      epos_vec.push_back(tract.epos);
+      ancestry_hap0_vec.push_back(static_cast<int>(tract.ancestry0));
+      ancestry_hap1_vec.push_back(static_cast<int>(tract.ancestry1));
     }
   }
 
-  return DataFrame::create(_["sample"] = samples, _["hap"] = haps,
-                           _["chrom"] = chroms, _["spos"] = spos_vec,
-                           _["epos"] = epos_vec, _["ancestry"] = ancestry_vec);
+  return DataFrame::create(
+      _["sample"] = samples,
+      _["chrom"] = chroms,
+      _["spos"] = spos_vec,
+      _["epos"] = epos_vec,
+      _["ancestry0"] = ancestry_hap0_vec,
+      _["ancestry1"] = ancestry_hap1_vec
+  );
 }
