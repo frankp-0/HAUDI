@@ -88,16 +88,16 @@ initialize_fbm <- function(fbm_prefix, samples) {
 #' Produces HAUDI matrix and variant info for a single chunk
 #'
 #' @param chunk An integer vector of indices in the pgen file
-#' @param gr_tracts A `GRanges` object corresponding to the ancestry file
 #' @param pgen A `pgen` object produced by `pgenlibr::NewPgen()`
 #' @param pvar A data frame corresponding to the pvar file
+#' @param dt_tracts A data frame with ancestry tracts
 #' @param min_ac An integer with the minimum allele count to
 #' retain columns in the HAUDI matrix
 #' @param anc_names An ordered vector of ancestry names
 #' @param idx_samples An ordered integer vector of samples to
 #' retain from the pgen
 #' @return A list with the HAUDI matrix and variant info for the chunk
-make_haudi_chunk <- function(chunk, gr_tracts, pgen, pvar,
+make_haudi_chunk <- function(chunk, pgen, pvar, dt_tracts,
                              min_ac, anc_names, idx_samples) {
   n_samp <- length(idx_samples)
 
@@ -106,13 +106,42 @@ make_haudi_chunk <- function(chunk, gr_tracts, pgen, pvar,
     ranges = IRanges::IRanges(pvar$POS[chunk], pvar$POS[chunk]),
   )
 
+  gr_tracts0 <- GenomicRanges::makeGRangesFromDataFrame(
+    df = dt_tracts[
+      spos <= max(pvar$POS[chunk]) &
+        epos >= min(pvar$POS[chunk]) &
+        hap == 0,
+    ],
+    seqnames.field = "chrom",
+    start.field = "spos",
+    end.field = "epos",
+    keep.extra.columns = TRUE
+  )
+  gr_tracts1 <- GenomicRanges::makeGRangesFromDataFrame(
+    df = dt_tracts[
+      spos <= max(pvar$POS[chunk]) &
+        epos >= min(pvar$POS[chunk]) &
+        hap == 1,
+    ],
+    seqnames.field = "chrom",
+    start.field = "spos",
+    end.field = "epos",
+    keep.extra.columns = TRUE
+  )
+
   ## Find matching tract per-sample/hap for each variant in gr_target
-  overlaps <- GenomicRanges::findOverlaps(gr_target, gr_tracts)
-  gr_chunk <- gr_tracts[S4Vectors::subjectHits(overlaps)]
+  overlaps0 <- GenomicRanges::findOverlaps(gr_target, gr_tracts0)
+  overlaps1 <- GenomicRanges::findOverlaps(gr_target, gr_tracts1)
 
   ## Per-haplotype ancestry
-  anc0 <- matrix(gr_chunk[gr_chunk$hap == 0]$ancestry, nrow = n_samp)
-  anc1 <- matrix(gr_chunk[gr_chunk$hap == 1]$ancestry, nrow = n_samp)
+  anc0 <- matrix(
+    gr_tracts0[S4Vectors::subjectHits(overlaps0)]$ancestry,
+    nrow = n_samp
+  )
+  anc1 <- matrix(
+    gr_tracts1[S4Vectors::subjectHits(overlaps1)]$ancestry,
+    nrow = n_samp
+  )
 
   ## Per-haplotype alleles
   gen0 <- gen1 <- matrix(0, n_samp, length(chunk))
@@ -210,15 +239,6 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
     anc_names <- unique(dt_tracts$ancestry)
   }
 
-  ## Make GRanges object for ancestry tracts
-  gr_tracts <- GenomicRanges::makeGRangesFromDataFrame(
-    df = dt_tracts,
-    seqnames.field = "chrom",
-    start.field = "spos",
-    end.field = "epos",
-    keep.extra.columns = TRUE
-  )
-
   ## Initialize FBM
   if (is.null(fbm)) {
     fbm <- initialize_fbm(fbm_prefix, psam$`#IID`[idx_samples])
@@ -241,6 +261,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
     total = n_chunks,
     clear = FALSE, width = 70
   )
+  pb$tick(0)
 
   for (i in seq_along(chunks)) {
     chunk <- chunks[[i]]
@@ -249,8 +270,7 @@ add_to_fbm <- function(ancestry_file, ancestry_fmt, plink_prefix,
 
     ## Get new HAUDI-style matrix and associated info
     haudi_chunk <- make_haudi_chunk(
-      chunk = chunk, gr_tracts = gr_tracts,
-      pgen = pgen, pvar = pvar, min_ac = min_ac,
+      chunk = chunk, pgen = pgen, pvar = pvar, dt_tracts = dt_tracts, min_ac = min_ac,
       anc_names = anc_names, idx_samples = idx_samples
     )
 
