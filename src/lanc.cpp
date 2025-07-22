@@ -36,23 +36,10 @@ List rcpp_parse_lanc(CharacterVector lines) {
             anc1s.push_back(anc1);
         }
 
-        // Sort by index in case input isn't ordered
-        std::vector<size_t> order(indices.size());
-        std::iota(order.begin(), order.end(), 0);
-        std::sort(order.begin(), order.end(),
-                  [&](size_t a, size_t b) { return indices[a] < indices[b]; });
-
-        std::vector<int> sorted_indices, sorted_anc0s, sorted_anc1s;
-        for (size_t j : order) {
-            sorted_indices.push_back(indices[j]);
-            sorted_anc0s.push_back(anc0s[j]);
-            sorted_anc1s.push_back(anc1s[j]);
-        }
-
         result[i] = DataFrame::create(
-            Named("index") = sorted_indices,
-            Named("anc0") = sorted_anc0s,
-            Named("anc1") = sorted_anc1s
+            Named("index") = indices,
+            Named("anc0") = anc0s,
+            Named("anc1") = anc1s
         );
     }
 
