@@ -26,7 +26,7 @@ validate_tracts <- function(dt_tracts) {
     by = .(sample, chrom)
   ][, length(unique(V1)), by = .(chrom)]$V1 == 1
   if (!all(max_unique)) {
-    stop("Not all samples have same start positions")
+    stop("Not all samples have same end positions")
   }
 
   ## check no samples missing
