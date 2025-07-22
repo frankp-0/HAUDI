@@ -6,12 +6,6 @@
 
 using namespace Rcpp;
 
-struct AncestrySegment {
-    int index;
-    int anc0;
-    int anc1;
-};
-
 // [[Rcpp::export]]
 List rcpp_parse_lanc(CharacterVector lines) {
     int n_samples = lines.size();
