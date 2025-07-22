@@ -11,4 +11,11 @@ RoxygenNote: 7.3.2
 LinkingTo: 
     Rcpp
 Imports: 
+    Matrix,
+    bigstatsr,
+    data.table,
+    genlasso,
+    splitTools,
+    stringr,
+    pgenlibr,
     Rcpp

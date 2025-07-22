@@ -332,10 +332,7 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 #'
 #' @importFrom pgenlibr NewPgen ReadAlleles AlleleCodeBuf
 #' @importFrom data.table data.table setorder fread
-#' @importFrom GenomicRanges GRanges makeGRangesFromDataFrame findOverlaps
 #' @importFrom bigstatsr FBM.code256
-#' @importFrom S4Vectors Rle subjectHits
-#' @importFrom IRanges IRanges
 #' @importFrom progress progress_bar
 #' @export
 make_fbm <- function(lanc_files, plink_prefixes,
