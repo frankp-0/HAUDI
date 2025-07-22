@@ -1,6 +1,7 @@
 #' Check that ancestry tracts are valid
 #'
 #' @param dt_tracts A data.table with ancestry tracts
+#' @noRd
 validate_tracts <- function(dt_tracts) {
   ## check contiguity
   is_discontig <- dt_tracts[,
@@ -140,6 +141,7 @@ read_lanc <- function(lanc_file) {
 #' @param tracts A list of ancestry tracts (as returned by `read_lanc`)
 #' @return A list with two elements "hap0" and "hap1", containing the
 #' haplotype-level ancestry matrices for the query.
+#' @noRd
 query_tracts <- function(query, tracts) {
   rcpp_query_tracts(query, tracts)
 }

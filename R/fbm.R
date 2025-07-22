@@ -17,6 +17,7 @@
 #' represents (intended to be "samples" or "variants")
 #' @return A vector of sorted indices representing a
 #' (possible) subset of `reference`
+#' @noRd
 resolve_indices <- function(ids = NULL, idx = NULL,
                             reference, label = "items") {
   if (!is.null(ids) && !is.null(idx)) {
@@ -68,6 +69,7 @@ verify_plink <- function(plink_prefix) {
 #' the intended FBM file path
 #' @return An FBM object with an attribute "samples"
 #' containing an ordered vector of samples
+#' @noRd
 initialize_fbm <- function(fbm_prefix, samples) {
   code_dosage <- rep(NA_real_, 256)
   code_dosage[1:201] <- seq(0, 2, length.out = 201)
@@ -100,6 +102,7 @@ initialize_fbm <- function(fbm_prefix, samples) {
 #' @param idx_samples An ordered integer vector of samples to
 #' retain from the pgen
 #' @return A list with the HAUDI matrix and variant info for the chunk
+#' @noRd
 make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
                              min_ac, anc_names, idx_samples) {
   ## Get ancestry matrices
