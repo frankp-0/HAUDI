@@ -1,41 +1,21 @@
-##' @title gaudi
-##' @param fbm_obj object of FBM class
-##' @param fbm_info data frame containing information
-##' for fbm (chrom/pos/samples/etc.)
-##' @param y vector of responses
-##' @param k number of folds to use in cross-validation
-##' @param ind_train integer vector of samples to use in training model
-##' @param snps vector of snp names to use in model
-##' @param verbose boolean indicating verbosity
-##' @param minlam minimum lambda value for genlasso
-##' @param maxsteps_init max steps for genlasso in initial model
-##' @param maxsteps_cv max steps for genlasso in cross-validation models
-##' @param gamma_vec vector of gamma values
-##' @param approx boolean indicating whether
-## to use the approximate solution
-##' @return list containing information for best cross-validated fit
-##' @author Bryce Rowland, Frank Ockerman
-##' @import genlasso
-##' @import splitTools
-##' @import stringr
-##' @import Matrix
 ##' @export
-gaudi <- function(fbm_obj, fbm_info, y, gamma_vec, k = 10, ind_train = NULL,
-                  snps = NULL, verbose = FALSE, minlam = 0,
-                  maxsteps_init = 2000, maxsteps_cv = 2000 * 10, approx = FALSE) {
-  x_mat <- construct_gaudi(fbm_obj, fbm_info, snps)
+gaudi <- function(fbm, fbm_info, y_train, ind_train = NULL,
+                  gamma_vec, k = 10, variants = NULL,
+                  verbose = FALSE, minlam = 0,
+                  maxsteps_init = 2000, maxsteps_cv = 2000 * 10,
+                  approx = FALSE) {
+  x_mat <- construct_gaudi(fbm, fbm_info, variants)
   if (is.null(ind_train)) {
     ind_train <- seq_len(nrow(x_mat))
   }
   x_mat <- x_mat[ind_train, ]
-  y <- y[ind_train]
-  mod <- cv_fused_lasso(
-    x = x_mat, y = y, n_folds = k, verbose = verbose,
+  model <- cv_fused_lasso(
+    x = x_mat, y = y_train, n_folds = k, verbose = verbose,
     minlam = minlam, maxsteps_init = maxsteps_init,
     maxsteps_cv = maxsteps_cv, gamma_vec = gamma_vec,
     approx = approx
   )
-  return(mod)
+  return(model)
 }
 
 cv_fused_lasso <- function(x, y, n_folds,
@@ -164,28 +144,19 @@ get_upper_fusion_matrix <- function(x) {
   fusion_d
 }
 
-##' Constructs X matrix for GAUDI
-##'
-##' @title construct_gaudi
-##' @param fbm_obj object of FBM class
-##' @param fbm_info data frame containing information
-##' @param snps vector of SNPs
-##' @return matrix for fitting GAUDI
-##' @author Frank Ockerman
-##' @export
-construct_gaudi <- function(fbm_obj, fbm_info, snps = NULL) {
+construct_gaudi <- function(fbm, fbm_info, snps = NULL) {
   if (is.null(snps)) {
-    idx_col <- seq_len(ncol(fbm_obj))
-    idx_col <- idx_col[fbm_info$anc[idx_col] != "all"]
+    ind_col <- seq_len(ncol(fbm))
+    ind_col <- ind_col[fbm_info$anc[ind_col] != "all"]
   } else {
-    idx_col <- which(fbm_info$rsid %in% snps)
-    idx_col <- idx_col[fbm_info$anc[idx_col] != "all"]
+    ind_col <- which(fbm_info$id %in% snps)
+    ind_col <- ind_col[fbm_info$anc[ind_col] != "all"]
   }
-  rsid <- fbm_info$rsid[idx_col]
-  idx_col <- idx_col[order(rsid)]
-  anc <- fbm_info$anc[idx_col]
-  rsid <- rsid[order(rsid)]
-  x <- cbind(1, fbm_obj[, idx_col])
-  colnames(x) <- c("Intercept", paste(rsid, anc, sep = ".anc."))
+  id <- fbm_info$id[ind_col]
+  ind_col <- ind_col[order(id)]
+  anc <- fbm_info$anc[ind_col]
+  id <- id[order(id)]
+  x <- cbind(1, fbm[, ind_col])
+  colnames(x) <- c("Intercept", paste(id, anc, sep = ".anc."))
   return(x)
 }
