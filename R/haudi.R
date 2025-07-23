@@ -1,20 +1,19 @@
+# TODO: Documentation
+
 ##' @export
-haudi_new <- function(fbm, fbm_info, y_train, ind_train = NULL,
-                      gamma, family, k_inner = 10, variants = NULL, ...) {
+haudi <- function(fbm, fbm_info, y_train, gamma_vec,
+                  family, k = 10, variants = NULL, ...) {
   ## Check for disallowed arguments
   dots <- list(...)
   bad_args <- intersect(
     names(dots),
-    c("X", "pf.X", "K", "y.train", "ind.train", "ind.col")
+    c("X", "pf.X", "K", "y.train", "ind.col")
   )
   if (length(bad_args) > 0) {
     stop("Please do not specify: ", paste(bad_args, collapse = ", "))
   }
 
-  ## Specify training rows in FBM
-  if (is.null(ind_train)) {
-    ind_train <- bigstatsr::rows_along(fbm)
-  }
+
 
   ## Specify variants to retain
   if (is.null(variants)) {
@@ -25,44 +24,53 @@ haudi_new <- function(fbm, fbm_info, y_train, ind_train = NULL,
   col_keep[fbm_info$anc_ref == TRUE] <- FALSE
   ind_col <- which(col_keep)
 
+  cv_results <- data.frame(gamma = gamma_vec, validation_loss = NA_real_)
 
-  ## specify multiplicative penalty
-  pf_x <- rep(1, ncol(fbm))
-  pf_x[fbm_info$anc == "all"] <- gamma
-  pf_x <- pf_x[ind_col]
+  for (gamma in gamma_vec) {
+    ## specify multiplicative penalty
+    pf_x <- rep(1, ncol(fbm))
+    pf_x[fbm_info$anc == "all"] <- gamma
+    pf_x <- pf_x[ind_col]
 
-  ## fit HAUDI model
-  if (family == "gaussian") {
-    model <- bigstatsr::big_spLinReg(
-      X = fbm,
-      y.train = y_train,
-      ind.train = ind_train,
-      pf.X = pf_x,
-      ind.col = ind_col,
-      ...
-    )
-  } else if (family == "binomial") {
-    model <- bigstatsr::big_spLogReg(
-      X = fbm,
-      y01.train = y_train,
-      ind.train = ind_train,
-      pf.X = pf_x,
-      ind.col = ind_col,
-      ...
-    )
+    ## fit HAUDI model
+    if (family == "gaussian") {
+      model <- bigstatsr::big_spLinReg(
+        X = fbm,
+        y.train = y_train,
+        pf.X = pf_x,
+        ind.col = ind_col,
+        K = k,
+        ...
+      )
+    } else if (family == "binomial") {
+      model <- bigstatsr::big_spLogReg(
+        X = fbm,
+        y01.train = y_train,
+        pf.X = pf_x,
+        ind.col = ind_col,
+        K = k,
+        ...
+      )
+    }
+    i <- which(cv_results$gamma == gamma)
+    loss_val <- summary(model)$validation_loss
+    cv_results$validation_loss[i] <- loss_val
+    if (loss_val == max(cv_results$validation_loss, na.rm = TRUE)) {
+      final_model <- model
+    }
   }
-  return(model)
+  return(list(model = final_model, cv_results = cv_results))
 }
 
 
 ##' @export
-lasso <- function(fbm, fbm_info, y_train, ind_train = NULL,
+lasso <- function(fbm, fbm_info, y_train,
                   family, k = 10, variants = NULL, ...) {
   ## Check for disallowed arguments
   dots <- list(...)
   bad_args <- intersect(
     names(dots),
-    c("X", "K", "y.train", "ind.train", "ind.col")
+    c("X", "K", "y.train", "ind.col")
   )
   if (length(bad_args) > 0) {
     stop("Please do not specify: ", paste(bad_args, collapse = ", "))
@@ -84,7 +92,6 @@ lasso <- function(fbm, fbm_info, y_train, ind_train = NULL,
     model <- bigstatsr::big_spLinReg(
       X = fbm,
       y.train = y_train,
-      ind.train = ind_train,
       ind.col = ind_col,
       ...
     )
@@ -92,7 +99,6 @@ lasso <- function(fbm, fbm_info, y_train, ind_train = NULL,
     model <- bigstatsr::big_spLogReg(
       X = fbm,
       y01.train = y_train,
-      ind.train = ind_train,
       ind.col = ind_col,
       ...
     )
