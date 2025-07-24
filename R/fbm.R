@@ -107,60 +107,48 @@ initialize_fbm <- function(fbm_prefix, samples) {
 make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
                              min_ac, anc_names, idx_samples) {
   ## Get ancestry matrices
-  time_anc <- system.time({
-    anc_mats <- query_tracts(chunk, tracts)
-  })
-  message(sprintf("Anc query time: %s", time_anc[3]))
+  anc_mats <- query_tracts(chunk, tracts)
 
   ## Per-haplotype alleles
   n_samp <- length(idx_samples)
-  time_gen <- system.time({
-    gen0 <- gen1 <- matrix(0, n_samp, length(chunk))
-    buf <- pgenlibr::AlleleCodeBuf(pgen)
-    for (i in seq_along(chunk)) {
-      pgenlibr::ReadAlleles(pgen, acbuf = buf, variant_num = chunk[i])
-      gen0[, i] <- buf[1, idx_samples]
-      gen1[, i] <- buf[2, idx_samples]
-    }
-  })
-  message(sprintf("Gen query time: %s", time_gen[3]))
+  gen0 <- gen1 <- matrix(0, n_samp, length(chunk))
+  buf <- pgenlibr::AlleleCodeBuf(pgen)
+  for (i in seq_along(chunk)) {
+    pgenlibr::ReadAlleles(pgen, acbuf = buf, variant_num = chunk[i])
+    gen0[, i] <- buf[1, idx_samples]
+    gen1[, i] <- buf[2, idx_samples]
+  }
 
   ## Per-ancestry genotypes and total genotypes
-  time_haudi <- system.time({
-    mat_haudi <- lapply(0:(length(anc_names) - 1), function(anc) {
-      gen0 * (anc_mats$hap0 == anc) + gen1 * (anc_mats$hap1 == anc)
-    }) |>
-      do.call(what = "cbind") |>
-      cbind(gen0 + gen1)
-  })
-  message(sprintf("HAUDI time: %s", time_haudi[3]))
+  mat_haudi <- lapply(0:(length(anc_names) - 1), function(anc) {
+    gen0 * (anc_mats$hap0 == anc) + gen1 * (anc_mats$hap1 == anc)
+  }) |>
+    do.call(what = "cbind") |>
+    cbind(gen0 + gen1)
 
-  time_process <- system.time({
-    dt_info <- data.table::data.table(
-      chrom = rep(pvar[chunk, ]$`#CHROM`, length(anc_names) + 1),
-      pos = rep(pvar[chunk, ]$POS, length(anc_names) + 1),
-      id = rep(pvar[chunk, ]$ID, length(anc_names) + 1),
-      ref = rep(pvar[chunk, ]$REF, length(anc_names) + 1),
-      alt = rep(pvar[chunk, ]$ALT, length(anc_names) + 1),
-      anc = c(rep(anc_names, each = length(chunk)), rep("all", length(chunk)))
-    )
-    dt_info$chrom <- as.character(dt_info$chrom)
-    dt_info$ac <- colSums(mat_haudi)
+  dt_info <- data.table::data.table(
+    chrom = rep(pvar[chunk, ]$`#CHROM`, length(anc_names) + 1),
+    pos = rep(pvar[chunk, ]$POS, length(anc_names) + 1),
+    id = rep(pvar[chunk, ]$ID, length(anc_names) + 1),
+    ref = rep(pvar[chunk, ]$REF, length(anc_names) + 1),
+    alt = rep(pvar[chunk, ]$ALT, length(anc_names) + 1),
+    anc = c(rep(anc_names, each = length(chunk)), rep("all", length(chunk)))
+  )
+  dt_info$chrom <- as.character(dt_info$chrom)
+  dt_info$ac <- colSums(mat_haudi)
 
-    ## Set reference ancestry
-    dt_info[, row_id := .I]
-    dt_info[, idx := rep(chunk, length(anc_names) + 1)]
-    max_rows <- dt_info[anc != "all", .SD[which.max(ac)], by = idx][, row_id]
-    dt_info[, anc_ref := FALSE]
-    dt_info[max_rows, anc_ref := TRUE]
-    dt_info$row_id <- dt_info$idx <- NULL
+  ## Set reference ancestry
+  dt_info[, row_id := .I]
+  dt_info[, idx := rep(chunk, length(anc_names) + 1)]
+  max_rows <- dt_info[anc != "all", .SD[which.max(ac)], by = idx][, row_id]
+  dt_info[, anc_ref := FALSE]
+  dt_info[max_rows, anc_ref := TRUE]
+  dt_info$row_id <- dt_info$idx <- NULL
 
 
-    ## Filter by ancestry-specific allele count
-    mat_haudi <- mat_haudi[, dt_info$ac >= min_ac]
-    dt_info <- dt_info[ac >= min_ac, ]
-  })
-  message(sprintf("Process time: %s", time_process[3]))
+  ## Filter by ancestry-specific allele count
+  mat_haudi <- mat_haudi[, dt_info$ac >= min_ac]
+  dt_info <- dt_info[ac >= min_ac, ]
 
   return(list(mat = mat_haudi, info = dt_info))
 }
