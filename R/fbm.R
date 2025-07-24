@@ -48,6 +48,7 @@ resolve_indices <- function(ids = NULL, idx = NULL,
 #' @param plink_prefix A string with the prefix
 #' for the plink2 file paths
 #' @return A list of plink2 file paths
+#' @noRd
 verify_plink <- function(plink_prefix) {
   files <- paste0(plink_prefix, c(".pgen", ".pvar", ".psam")) |> as.list()
   for (file in files) {
@@ -178,6 +179,7 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #' in the FBM
 #' @inherit make_fbm return
 #' @export
+#' @noRd
 add_to_fbm <- function(lanc_file, plink_prefix,
                        fbm_prefix, variants = NULL, idx_variants = NULL,
                        min_ac = 0, samples = NULL, idx_samples = NULL,
