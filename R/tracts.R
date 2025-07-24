@@ -110,7 +110,7 @@ convert_to_lanc <- function(
   dt_tracts <- dt_tracts[, .SD[.N], by = .(sample, chrom, idx)]
 
   ## Get .lanc file lines
-  dt_tracts[, switch := paste0(idx, ":", ancestry0, ancestry1)]
+  dt_tracts[, switch := paste0(idx, ":", anc0, anc1)]
   lines <- dt_tracts[, paste(switch, collapse = " "), by = .(sample, chrom)]$V1
 
   ## Write output
