@@ -65,7 +65,7 @@ An example may look like:
 ```{r}
 pheno_file <- system.file("extdata/toy.pheno", package = "HAUDI")
 y <- read.csv(pheno_file, sep = "\t")$phenotype
-result <- haudi(
+result <- HAUDI::haudi(
   fbm = input$fbm, fbm_info = input$info, y_train = y,
   gamma_vec = seq(1, 2, 0.2), family = "gaussian")
 ```
