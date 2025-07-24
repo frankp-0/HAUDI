@@ -1,4 +1,32 @@
-##' @export
+#' Fit GAUDI model
+#'
+#' Calculates GAUDI admixture-aware polygenic scores
+#' using a bigstatsr FBM.code256 object generated
+#' by `make_fbm`.
+#'
+#' This function is a re-implementation of GAUDI
+#' provided so that it may be easily incorporated
+#' into HAUDI workflows.
+#'
+#' @inheritParams haudi
+#' @param ind_train An optional vector of indices corresponding to rows
+#' in the fbm matrix, used to subset samples for training. If provided,
+#' y_train must be the same length and sorted to these indices.
+##' @param verbose A boolean indicating verbosity
+##' @param minlam A numeric with the minimum lambda value for genlasso
+##' @param maxsteps_init An integer with the max steps for genlasso in
+## the initial model
+##' @param maxsteps_cv An integer with the max steps for genlasso in
+## cross-validation models
+##' @param gamma_vec A numeric vector with gamma values
+##' @param approx A boolean indicating whether
+## to use the approximate solution
+#' @importFrom stats cor
+#' @importFrom genlasso fusedlasso getD1dSparse
+#' @importFrom splitTools create_folds
+#' @importFrom stringr str_remove
+#' @importFrom Matrix sparseMatrix
+#' @export
 gaudi <- function(fbm, fbm_info, y_train, ind_train = NULL,
                   gamma_vec, k = 10, variants = NULL,
                   verbose = FALSE, minlam = 0,
@@ -81,7 +109,7 @@ cv_fused_lasso <- function(x, y, n_folds,
         lambda = lambdas * n_ratio,
         Xnew = x[-splits[[fold]], ]
       )$fit
-      fold_scores[[fold]] <- cor(fold_pred, y[-splits[[fold]]])^2
+      fold_scores[[fold]] <- stats::cor(fold_pred, y[-splits[[fold]]])^2
     }
 
     cv_r2_full <- do.call(cbind, fold_scores)

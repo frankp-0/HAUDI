@@ -31,8 +31,7 @@ will be written. This prefix will be appended with ".bk"}
 
 \item{variants}{A character vector with variant IDs to include in the FBM}
 
-\item{idx_variants}{An integer vector with indices of variants to include
-in the FBM}
+\item{idx_variants}{An integer vector with indices of variants to include}
 
 \item{min_ac}{An integer with a minimum cut off for
 allele counts in each column of the FBM}
@@ -54,7 +53,8 @@ variants to load at a given time while reading the
 plink2 pgen file}
 
 \item{fbm}{An existing \code{FBM.code256} object to which
-results are appended.}
+results are appended.
+in the FBM}
 }
 \value{
 A list containing:

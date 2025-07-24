@@ -173,6 +173,8 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #' @param plink_prefix A string with the prefix for a single set of plink2
 #' files
 #' @param idx_variants An integer vector with indices of variants to include
+#' @param fbm An existing `FBM.code256` object to which
+#' results are appended.
 #' in the FBM
 #' @inherit make_fbm return
 #' @export
@@ -289,12 +291,10 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 
 #' Make File-Backed Matrix input for HAUDI
 #'
-#' @description
 #' Processes .lanc local ancestry files and corresponding plink2 files,
 #' producing a file-backed matrix object and associated
 #' information used for HAUDI.
 #'
-#' @details
 #' Only one (or neither) of `variants` and `idx_variants_list` may be provided.
 #' `variants` is a single character with all variant IDs (across input files),
 #' while `idx_variants_list` is a list where each element is a vector of indices
@@ -327,8 +327,6 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 #' @param chunk_size An integer with the max number of
 #' variants to load at a given time while reading the
 #' plink2 pgen file
-#' @param fbm An existing `FBM.code256` object to which
-#' results are appended.
 #'
 #' @return A list containing:
 #'   `fbm`: an `FBM.code256` object from `bigstatsr`,

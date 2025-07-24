@@ -50,9 +50,6 @@ provided, integer values are used}
 \item{chunk_size}{An integer with the max number of
 variants to load at a given time while reading the
 plink2 pgen file}
-
-\item{fbm}{An existing \code{FBM.code256} object to which
-results are appended.}
 }
 \value{
 A list containing:
