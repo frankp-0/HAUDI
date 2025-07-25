@@ -166,7 +166,6 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #' results are appended.
 #' in the FBM
 #' @inherit make_fbm return
-#' @export
 #' @noRd
 add_to_fbm <- function(lanc_file, plink_prefix,
                        fbm_prefix, variants = NULL, idx_variants = NULL,
@@ -231,7 +230,7 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 
   ## Initialize progress bar
   pb <- progress::progress_bar$new(
-    format = "[:bar] Chunk :current/:total — ETA: :eta — :message",
+    format = "[:bar] Chunk :current/:total - ETA: :eta - :message",
     total = n_chunks,
     clear = FALSE, width = 70
   )

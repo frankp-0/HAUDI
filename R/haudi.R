@@ -35,6 +35,8 @@
 #' folds to use for selecting gamma and lambda
 #' @param variants A character vector with IDs for variants to
 #' include in the model
+#' @param ... Additional arguments provided to `bigstatsr::big_spLinReg`
+#' or `bigstatsr::big_spLogReg`
 #' @return A list containing:
 #'   - model: the final model returned by `bigstatsr::big_spLinReg`
 #'   or `bigstatsr::big_spLogReg`
@@ -158,13 +160,13 @@ lasso <- function(fbm, fbm_info, y_train,
 }
 
 
-## Gets data frame with ancestry-specific effects estimated by HAUDI
-##
-## @param fbm_info A data.table with information on the columns in the FBM
-## @param haudi_model A haudi model, as returned by `haudi()`
-##
-## @importFrom data.table data.table set
-##' @export
+#' Gets data frame with ancestry-specific effects estimated by HAUDI
+#
+#' @param fbm_info A data.table with information on the columns in the FBM
+#' @param haudi_model A haudi model, as returned by `haudi()`
+#'
+#' @importFrom data.table data.table set
+#' @export
 get_beta_haudi <- function(fbm_info, haudi_model) {
   dt_snp <- data.table::data.table(
     snp = fbm_info$id[attr(haudi_model, "ind.col")],

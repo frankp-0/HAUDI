@@ -26,6 +26,9 @@ folds to use for selecting gamma and lambda}
 
 \item{variants}{A character vector with IDs for variants to
 include in the model}
+
+\item{...}{Additional arguments provided to \code{bigstatsr::big_spLinReg}
+or \code{bigstatsr::big_spLogReg}}
 }
 \value{
 A list containing:

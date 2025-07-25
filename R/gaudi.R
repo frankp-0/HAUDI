@@ -22,10 +22,11 @@
 ##' @param approx A boolean indicating whether
 ## to use the approximate solution
 #' @importFrom stats cor
-#' @importFrom genlasso fusedlasso getD1dSparse
+#' @importFrom genlasso fusedlasso getD1dSparse predict.genlasso
 #' @importFrom splitTools create_folds
 #' @importFrom stringr str_remove
 #' @importFrom Matrix sparseMatrix
+#' @importFrom stats na.omit
 #' @export
 gaudi <- function(fbm, fbm_info, y_train, ind_train = NULL,
                   gamma_vec, k = 10, variants = NULL,
