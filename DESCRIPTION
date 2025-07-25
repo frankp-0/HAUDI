@@ -1,24 +1,29 @@
 Package: HAUDI
 Title: Efficient Lasso Framework for Admixture-Aware Polygenic Risk Scores
-Version: 1.0.0.9000
+Version: 1.0.0
 Authors@R: 
-    person("Franklin", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
-Description: R package for admixture-aware polygenic scores
+  person("Franklin", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
+Description: HAUDI is an R package for constructing polygenic scores
+  in admixed individuals. Inspired by GAUDI, HAUDI is an efficient
+  Lasso-based method which shrinks ancestry-specific effects together
+  while encouraging sparsity. It provides helpful functions for
+  converting RFMix and FLARE input, and it provides a re-implementation of GAUDI.
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 LinkingTo: 
-    Rcpp
+  Rcpp
 Imports: 
-    Matrix,
-    bigstatsr,
-    data.table,
-    genlasso,
-    splitTools,
-    stringr,
-    pgenlibr,
-    progress,
-    Rcpp
+  Matrix,
+  bigstatsr,
+  data.table,
+  genlasso,
+  splitTools,
+  stringr,
+  pgenlibr,
+  progress,
+  stats,
+  Rcpp
 Depends:
   R (>= 4.1.0)
