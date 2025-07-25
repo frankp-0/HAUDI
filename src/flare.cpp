@@ -27,8 +27,7 @@ struct VCFRecord {
   std::vector<uint8_t> anc0;
   std::vector<uint8_t> anc1;
 
-  VCFRecord(size_t n_samples)
-      : anc0(n_samples, 255), anc1(n_samples, 255) {}
+  VCFRecord(size_t n_samples) : anc0(n_samples, 255), anc1(n_samples, 255) {}
 };
 
 // Reads line from FLARE VCF into buffer, adding it to line until line break
@@ -74,14 +73,16 @@ extract_AN1_AN2(const std::string &sample_field,
       int val = std::stoi(tokens[an1_idx]);
       if (val >= 0 && val <= 255)
         an1 = val;
-    } catch (...) {}
+    } catch (...) {
+    }
   }
   if (an2_idx >= 0 && an2_idx < (int)tokens.size()) {
     try {
       int val = std::stoi(tokens[an2_idx]);
       if (val >= 0 && val <= 255)
         an2 = val;
-    } catch (...) {}
+    } catch (...) {
+    }
   }
   return {an1, an2};
 }
@@ -117,7 +118,7 @@ void finalize_open_tracts(
     uint8_t anc1 = prev_anc[i * 2 + 1];
     if (anc0 != 255 || anc1 != 255) {
       sample_tracts[sample].push_back(
-        {chrom, prev_spos[i * 2], final_pos, anc0, anc1});
+          {chrom, prev_spos[i * 2], final_pos, anc0, anc1});
     }
   }
 }
@@ -140,8 +141,7 @@ DataFrame rcpp_read_flare(std::string flare_file) {
   // Open file
   gzFile file = gzopen(flare_file.c_str(), "rb");
   if (!file) {
-    std::cerr << "Failed to open input VCF file.\n";
-    return DataFrame::create();  // Return empty DataFrame
+    Rcpp::stop("Failed to open input VCF file");
   }
 
   // Find header
@@ -154,9 +154,8 @@ DataFrame rcpp_read_flare(std::string flare_file) {
     }
   }
   if (!found_header) {
-    std::cerr << "Missing #CHROM header line.\n";
     gzclose(file);
-    return DataFrame::create();
+    Rcpp::stop("Missing #CHROM header line.");
   }
 
   // Identify where chrom, pos, and format fields occur
@@ -171,9 +170,8 @@ DataFrame rcpp_read_flare(std::string flare_file) {
       format_idx = i;
   }
   if (chrom_idx == -1 || pos_idx == -1 || format_idx == -1) {
-    std::cerr << "Missing essential VCF columns.\n";
     gzclose(file);
-    return DataFrame::create();
+    Rcpp::stop("Missing essential VCF columns");
   }
 
   // Get sample IDs
@@ -262,9 +260,8 @@ DataFrame rcpp_read_flare(std::string flare_file) {
       if ((new_anc0 != prev_anc[idx0]) || (new_anc1 != prev_anc[idx1])) {
         // Ancestry imputed to the midpoint between positions
         uint32_t midpoint = prev_pos + (cur_pos - prev_pos) / 2;
-        sample_tracts[sample].push_back({
-          chrom, prev_spos[idx0], midpoint, prev_anc[idx0], prev_anc[idx1]
-        });
+        sample_tracts[sample].push_back(
+            {chrom, prev_spos[idx0], midpoint, prev_anc[idx0], prev_anc[idx1]});
         prev_spos[idx0] = midpoint + 1;
         prev_anc[idx0] = new_anc0;
         prev_anc[idx1] = new_anc1;
@@ -293,12 +290,7 @@ DataFrame rcpp_read_flare(std::string flare_file) {
     }
   }
 
-  return DataFrame::create(
-      _["sample"] = samples,
-      _["chrom"] = chroms,
-      _["spos"] = spos_vec,
-      _["epos"] = epos_vec,
-      _["anc0"] = anc0_vec,
-      _["anc1"] = anc1_vec
-  );
+  return DataFrame::create(_["sample"] = samples, _["chrom"] = chroms,
+                           _["spos"] = spos_vec, _["epos"] = epos_vec,
+                           _["anc0"] = anc0_vec, _["anc1"] = anc1_vec);
 }
