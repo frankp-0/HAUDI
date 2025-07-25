@@ -2,52 +2,62 @@
 % Please edit documentation in R/gaudi.R
 \name{gaudi}
 \alias{gaudi}
-\title{gaudi}
+\title{Fit GAUDI model}
 \usage{
 gaudi(
-  fbm_obj,
+  fbm,
   fbm_info,
-  y,
+  y_train,
+  ind_train = NULL,
   gamma_vec,
   k = 10,
-  ind_train = NULL,
-  snps = NULL,
+  variants = NULL,
   verbose = FALSE,
   minlam = 0,
   maxsteps_init = 2000,
-  maxsteps_cv = 2000 * 10
+  maxsteps_cv = 2000 * 10,
+  approx = FALSE
 )
 }
 \arguments{
-\item{fbm_obj}{object of FBM class}
+\item{fbm}{An \code{FBM.code256} object with ancestry-specific columns,
+as returned by \code{make_fbm}}
 
-\item{fbm_info}{data frame containing information
-for fbm (chrom/pos/samples/etc.)}
+\item{fbm_info}{A data.table with information on the columns in \code{fbm},
+as returned by \code{make_fbm}}
 
-\item{y}{vector of responses}
+\item{y_train}{A vector with phenotype values. If the \code{idx.train},
+argument is passed, this vector must have the same length.}
 
-\item{gamma_vec}{vector of gamma values}
+\item{ind_train}{An optional vector of indices corresponding to rows
+in the fbm matrix, used to subset samples for training. If provided,
+y_train must be the same length and sorted to these indices.}
 
-\item{k}{number of folds to use in cross-validation}
+\item{gamma_vec}{A numeric vector with gamma values}
 
-\item{ind_train}{integer vector of samples to use in training model}
+\item{k}{An integer with the number of cross-validation (CMSA)
+folds to use for selecting gamma and lambda}
 
-\item{snps}{vector of snp names to use in model}
+\item{variants}{A character vector with IDs for variants to
+include in the model}
 
-\item{verbose}{boolean indicating verbosity}
+\item{verbose}{A boolean indicating verbosity}
 
-\item{minlam}{minimum lambda value for genlasso}
+\item{minlam}{A numeric with the minimum lambda value for genlasso}
 
-\item{maxsteps_init}{max steps for genlasso in initial model}
+\item{maxsteps_init}{An integer with the max steps for genlasso in}
 
-\item{maxsteps_cv}{max steps for genlasso in cross-validation models}
-}
-\value{
-list containing information for best cross-validated fit
+\item{maxsteps_cv}{An integer with the max steps for genlasso in}
+
+\item{approx}{A boolean indicating whether}
 }
 \description{
-Fit GAUDI model
+Calculates GAUDI admixture-aware polygenic scores
+using a bigstatsr FBM.code256 object generated
+by \code{make_fbm}.
 }
-\author{
-Bryce Rowland, Frank Ockerman
+\details{
+This function is a re-implementation of GAUDI
+provided so that it may be easily incorporated
+into HAUDI workflows.
 }

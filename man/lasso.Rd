@@ -2,33 +2,37 @@
 % Please edit documentation in R/haudi.R
 \name{lasso}
 \alias{lasso}
-\title{LASSO}
+\title{Fit ancestry-agnostic Lasso PGS model}
 \usage{
-lasso(fbm_obj, fbm_info, y, ind_train = NULL, family, snps = NULL, ...)
+lasso(fbm, fbm_info, y_train, family, k = 10, variants = NULL, ...)
 }
 \arguments{
-\item{fbm_obj}{object of FBM class}
+\item{fbm}{An \code{FBM.code256} object with ancestry-specific columns,
+as returned by \code{make_fbm}}
 
-\item{fbm_info}{data frame containing information
-for FBM (chrom/pos/samples/etc.)}
+\item{fbm_info}{A data.table with information on the columns in \code{fbm},
+as returned by \code{make_fbm}}
 
-\item{y}{Vector of responses}
-
-\item{ind_train}{Vector of indices specifying the
-rows to use for training the model}
+\item{y_train}{A vector with phenotype values. If the \code{idx.train},
+argument is passed, this vector must have the same length.}
 
 \item{family}{Either "gaussian" or "binomial"}
 
-\item{snps}{Vector of SNPs to include in model}
+\item{k}{An integer with the number of cross-validation (CMSA)
+folds to use for selecting gamma and lambda}
 
-\item{...}{additional arguments to pass to big_spLinReg / big_spLogReg}
+\item{variants}{A character vector with IDs for variants to
+include in the model}
+
+\item{...}{Additional arguments provided to \code{bigstatsr::big_spLinReg}
+or \code{bigstatsr::big_spLogReg}}
 }
 \value{
-An object of class \code{big_sp_list} from the \code{bigstatsr} package
+the final model returned by \code{bigstatsr::big_spLinReg}
+or \code{bigstatsr::big_spLogReg}
 }
 \description{
-LASSO
-}
-\author{
-Frank Ockerman
+This function is intended as a "null" comparator for
+haudi. It calculates a standard Lasso PGS by only
+including total genotypes without considering local ancestry.
 }

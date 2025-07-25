@@ -2,25 +2,15 @@
 % Please edit documentation in R/haudi.R
 \name{get_beta_haudi}
 \alias{get_beta_haudi}
-\title{get_beta_haudi}
+\title{Gets data frame with ancestry-specific effects estimated by HAUDI}
 \usage{
-get_beta_haudi(fbm_obj, fbm_info, haudi_model)
+get_beta_haudi(fbm_info, haudi_model)
 }
 \arguments{
-\item{fbm_obj}{object of FBM class}
+\item{fbm_info}{A data.table with information on the columns in the FBM}
 
-\item{fbm_info}{data frame containing information
-for FBM (chrom/pos/samples/etc.)}
-
-\item{haudi_model}{an object of class big_sp_list,
-returned by \code{haudi} or \code{lasso}}
-}
-\value{
-An object of class \code{big_sp_list} from the \code{bigstatsr} package
+\item{haudi_model}{A haudi model, as returned by \code{haudi()}}
 }
 \description{
-Extract population-specific SNP coefficients from a HAUDI model
-}
-\author{
-Frank Ockerman
+Gets data frame with ancestry-specific effects estimated by HAUDI
 }

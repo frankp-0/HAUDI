@@ -20,34 +20,33 @@ remotes::install_github("frankp-0/HAUDI")
 
 ## Instructions
 
-### 1. Prepare input VCF file
+### 1. Prepare input
 
-HAUDI requires as input a tabix-indexed vcf file, with AN1 and AN2 subfields
-for haplotype local ancestry (as is produced by [flare](https://github.com/browning-lab/flare)).
-If you use flare to estimate local ancestry, you can annotate your original vcf
-file using a command like: `bcftools annotate -c FORMAT -a flare.anc.vcf.gz
-target.vcf.gz -Oz -o target.anc.vcf.gz`.
-
-This will produce a VCF file where the AN1, AN2 fields are missing for variants
-not included in the reference panel. To interpolate local ancestry in
-the following step,ensure that the VCF file is sorted.
+HAUDI requires as input a set of phased plink2 pgen files, with corresponding
+local ancestry files in the .lanc format described by [Admix-kit](https://kangchenghou.github.io/admix-kit/prepare-dataset.html).
+We provide a helper function `convert_to_lanc` for converting
+[FLARE](https://github.com/browning-lab/flare) and [RFMix](https://github.com/slowkoni/rfmix)
+local ancestry files to .lanc format.
 
 ### 2. Creating file-backed matrices
 
 HAUDI uses file-backed matrices, implemented in the `bigstatsr`
 package to store genotype/ancestry data. To create this file-backed
-matrix, use the function `make_fbm`, which takes the VCF file prepared
-in the previous step as input. An example may be:
+matrix, use the function `make_fbm`, which takes plink2 and local
+ancestry files as input. An example may look like:
 
 ```{r}
-fbm_result <- make_fbm(
-  vcf_file = "target.anc.vcf.gz",
-  fbm_pref = "target",
-  chunk_size = 400,
-  min_ac = 10,
-  geno_format = "GT",
-  anc_names = c("Pop_01", "Pop_02", "Pop_03") 
-)
+lanc_files <- system.file(paste0("extdata/chr", 20:22, ".lanc"), package = "HAUDI")
+plink_prefixes <- system.file(
+  paste0("extdata/chr", 20:22, ".pgen"),
+  package = "HAUDI"
+) |>
+  gsub(pattern = ".pgen", replacement = "")
+
+input <- HAUDI::make_fbm(
+  lanc_files = lanc_files,
+  plink_prefixes = plink_prefixes,
+  fbm_prefix = "toy_data")
 ```
 
 This command would return a list containing:
@@ -55,8 +54,8 @@ This command would return a list containing:
 1) an object of class FBM.code256 containing genotype/ancestry data
 2) a data frame containing SNP information (chromosome, position, etc.)
 
-Users may save these objects with: `saveRDS(fbm_result$FBM, file="target.rds")`
-and `write.table(fbm_result$info, file="target_info.txt")`
+Users may save these objects with: `saveRDS(input$fbm, file="input.rds")`
+and `write.table(input$info, file="input_info.txt")`
 
 ### 3. Run HAUDI/GAUDI models
 
@@ -64,16 +63,11 @@ Users may run HAUDI with the `haudi` function.
 An example may look like:
 
 ```{r}
-haudi_model <- haudi(
-  fbm_obj = fbm_result$FBM,
-  fbm_info = fbm_result$info,
-  y = y,
-  gamma = 2,
-  ind_train = NULL,
-  family = "gaussian",
-  snps = NULL,
-  K = 10
-)
+pheno_file <- system.file("extdata/toy.pheno", package = "HAUDI")
+y <- read.csv(pheno_file, sep = "\t")$phenotype
+result <- HAUDI::haudi(
+  fbm = input$fbm, fbm_info = input$info, y_train = y,
+  gamma_vec = seq(1, 2, 0.2), family = "gaussian")
 ```
 
 To obtain a data frame with ancestry-specific effect estimates, use the
