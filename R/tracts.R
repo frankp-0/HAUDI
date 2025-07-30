@@ -104,7 +104,9 @@ convert_to_lanc <- function(
   dt_tracts$spos[dt_tracts$spos < min_pvar] <- min_pvar
 
   ## Get index of first pvar pos >= tract epos
-  dt_tracts$idx <- findInterval(dt_tracts$epos, pvar$POS, left.open = TRUE) + 1
+  dt_tracts$idx <- findInterval(dt_tracts$epos, pvar$POS,
+    rightmost.closed = FALSE, all.inside = FALSE, left.open = FALSE
+  )
 
   ## If multiple tracts have same idx, pick last one
   dt_tracts <- dt_tracts[, .SD[.N], by = .(sample, chrom, idx)]
