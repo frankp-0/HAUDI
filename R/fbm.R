@@ -162,8 +162,7 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #' @param plink_prefix A string with the prefix for a single set of plink2
 #' files
 #' @param idx_variants An integer vector with indices of variants to include
-#' @param fbm An existing `FBM.code256` object to which
-#' results are appended.
+#' @param fbm An existing `FBM.code256` object to which results are appended
 #' in the FBM
 #' @inherit make_fbm return
 #' @noRd
@@ -289,9 +288,8 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 #' while `idx_variants_list` is a list where each element is a vector of indices
 #' corresponding to a single set of plink2 files (e.g. each vector is
 #' per-chromosome). Only one (or neither) of `samples` and `idx_samples` may
-#' be provided. Exactly one of `fbm_prefix` or `fbm` may be provided.
-#' It is assumed that the local ancestry input files and plink2 inputs
-#' are sorted by chromosome and position.
+#' be provided. It is assumed that the local ancestry input files and plink2
+#' inputs are sorted by position.
 #'
 #' @param lanc_files A string vector with file paths for
 #' the local ancestry input
