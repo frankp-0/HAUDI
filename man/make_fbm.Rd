@@ -75,7 +75,6 @@ Only one (or neither) of \code{variants} and \code{idx_variants_list} may be pro
 while \code{idx_variants_list} is a list where each element is a vector of indices
 corresponding to a single set of plink2 files (e.g. each vector is
 per-chromosome). Only one (or neither) of \code{samples} and \code{idx_samples} may
-be provided. Exactly one of \code{fbm_prefix} or \code{fbm} may be provided.
-It is assumed that the local ancestry input files and plink2 inputs
-are sorted by chromosome and position.
+be provided. It is assumed that the local ancestry input files and plink2
+inputs are sorted by position.
 }

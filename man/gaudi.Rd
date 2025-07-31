@@ -16,7 +16,8 @@ gaudi(
   minlam = 0,
   maxsteps_init = 2000,
   maxsteps_cv = 2000 * 10,
-  approx = FALSE
+  approx = FALSE,
+  splits = NULL
 )
 }
 \arguments{
@@ -49,7 +50,10 @@ include in the model}
 
 \item{maxsteps_cv}{An integer with the max steps for genlasso in}
 
-\item{approx}{A boolean indicating whether}
+\item{approx}{A boolean indicating whether to use the approximate solution}
+
+\item{splits}{A list of k vectors indicating the indices
+(in the training set) for inner-CV folds}
 }
 \description{
 Calculates GAUDI admixture-aware polygenic scores
