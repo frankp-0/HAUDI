@@ -247,17 +247,19 @@ add_to_fbm <- function(lanc_file, plink_prefix,
     )
 
     ## Append matrix to FBM
-    nc_chunk <- ncol(haudi_chunk$mat)
-    nc_fbm <- ncol(fbm)
-    mat_haudi_raw <- (100 * haudi_chunk$mat) |>
-      round() |>
-      as.raw() |>
-      matrix(ncol = nc_chunk)
-    fbm$add_columns(nc_chunk)
-    fbm[, (nc_fbm + 1):(nc_fbm + nc_chunk)] <- mat_haudi_raw
+    if (ncol(haudi_chunk$mat) > 0) {
+      nc_chunk <- ncol(haudi_chunk$mat)
+      nc_fbm <- ncol(fbm)
+      mat_haudi_raw <- (100 * haudi_chunk$mat) |>
+        round() |>
+        as.raw() |>
+        matrix(ncol = nc_chunk)
+      fbm$add_columns(nc_chunk)
+      fbm[, (nc_fbm + 1):(nc_fbm + nc_chunk)] <- mat_haudi_raw
 
-    ## Append info
-    dt_info <- rbind(dt_info, haudi_chunk$info)
+      ## Append info
+      dt_info <- rbind(dt_info, haudi_chunk$info)
+    }
 
     elapsed <- difftime(Sys.time(), chunk_start_time, units = "secs")
     pb$message(sprintf(
