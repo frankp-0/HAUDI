@@ -176,12 +176,17 @@ get_upper_fusion_matrix <- function(x) {
   fusion_d
 }
 
-construct_gaudi <- function(fbm, fbm_info, snps = NULL) {
-  if (is.null(snps)) {
+#' Constructs X matrix for GAUDI
+#'
+#' @inheritParams haudi
+#' @return The GAUDI model matrix
+#' @export
+construct_gaudi <- function(fbm, fbm_info, variants = NULL) {
+  if (is.null(variants)) {
     ind_col <- seq_len(ncol(fbm))
     ind_col <- ind_col[fbm_info$anc[ind_col] != "all"]
   } else {
-    ind_col <- which(fbm_info$id %in% snps)
+    ind_col <- which(fbm_info$id %in% variants)
     ind_col <- ind_col[fbm_info$anc[ind_col] != "all"]
   }
   id <- fbm_info$id[ind_col]
