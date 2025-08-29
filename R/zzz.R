@@ -3,5 +3,5 @@ utils::globalVariables(c(
   "chrom", "ac", ":=", "sample",
   "hap", ".I", "anc", "anc_ref",
   "anc0", "anc1", "epos", "row_id",
-  "idx"
+  "idx", "#IID"
 ))
