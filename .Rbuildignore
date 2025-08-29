@@ -2,5 +2,3 @@
 \.o$
 \.so*$
 Dockerfile
-renv
-renv.lock
