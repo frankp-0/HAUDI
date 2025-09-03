@@ -1,3 +1,7 @@
+## HAUDI 1.0.6
+
+- Now does not throw error in make_fbm if a pvar file does not contain a matching variant
+
 ## HAUDI 1.0.5
 
 - Now read psam files as character to avoid big integer issues with sample IDs

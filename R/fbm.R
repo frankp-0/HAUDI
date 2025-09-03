@@ -38,7 +38,7 @@ resolve_indices <- function(ids = NULL, idx = NULL,
     stop("Some `", label, "` indices exist outside range")
   }
   if (length(idx) == 0) {
-    stop(paste0("No matches found with `", label, "`"))
+    message(paste0("No matches found with `", label, "`"))
   }
   return(sort(idx))
 }
@@ -183,17 +183,28 @@ add_to_fbm <- function(lanc_file, plink_prefix,
     skip = "#IID", colClasses = "character"
   )
 
+  ## Get sample indices in psam
+  idx_samples <- resolve_indices(
+    ids = samples, idx = idx_samples,
+    reference = psam$`#IID`, label = "samples"
+  )
+
+  ## Initialize FBM and info
+  if (is.null(fbm)) {
+    fbm <- initialize_fbm(fbm_prefix, psam$`#IID`[idx_samples])
+  }
+  dt_info <- data.table::data.table()
+
   ## Get variant indices in pvar
   idx_variants <- resolve_indices(
     ids = variants, idx = idx_variants,
     reference = pvar$ID, label = "variants"
   )
 
-  ## Get sample indices in psam
-  idx_samples <- resolve_indices(
-    ids = samples, idx = idx_samples,
-    reference = psam$`#IID`, label = "samples"
-  )
+  ## Return early if no matching variants
+  if (length(idx_variants) == 0) {
+    return(list(fbm = fbm, info = dt_info))
+  }
 
   ## Read ancestry tracts
   message(sprintf(
@@ -217,14 +228,6 @@ add_to_fbm <- function(lanc_file, plink_prefix,
       sort() |>
       as.character()
   }
-
-  ## Initialize FBM
-  if (is.null(fbm)) {
-    fbm <- initialize_fbm(fbm_prefix, psam$`#IID`[idx_samples])
-  }
-
-  ## Initialize info
-  dt_info <- data.table::data.table()
 
   ## Prepare chunks
   chunks <- split(
@@ -284,7 +287,6 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 
   return(list(fbm = fbm, info = dt_info))
 }
-
 
 #' Make File-Backed Matrix input for HAUDI
 #'
