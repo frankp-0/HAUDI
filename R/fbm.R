@@ -173,8 +173,15 @@ add_to_fbm <- function(lanc_file, plink_prefix,
   ## Verify and read plink2 input files
   plink_files <- verify_plink(plink_prefix)
   pgen <- pgenlibr::NewPgen(plink_files$pgen)
-  pvar <- data.table::fread(plink_files$pvar, skip = "#CHROM")
-  psam <- data.table::fread(plink_files$psam, skip = "#IID")
+  pvar <- data.table::fread(
+    plink_files$pvar,
+    skip = "#CHROM", colClasses = "character"
+  )
+  pvar[, `POS` := as.integer(`POS`)]
+  psam <- data.table::fread(
+    plink_files$psam,
+    skip = "#IID", colClasses = "character"
+  )
 
   ## Get variant indices in pvar
   idx_variants <- resolve_indices(

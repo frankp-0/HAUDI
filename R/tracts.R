@@ -76,11 +76,17 @@ convert_to_lanc <- function(
   }
 
   ## Read plink files
-  pvar <- data.table::fread(paste0(plink_prefix, ".pvar"), skip = "#CHROM")
-  psam <- data.table::fread(paste0(plink_prefix, ".psam"), skip = "#IID")
+  pvar <- data.table::fread(
+    paste0(plink_prefix, ".pvar"),
+    skip = "#CHROM", colClasses = "character"
+  )
+  psam <- data.table::fread(
+    paste0(plink_prefix, ".psam"),
+    skip = "#IID", colClasses = "character"
+  )
 
-  ## Convert sample IDs to character (i.e. if numeric)
-  psam[, `#IID` := as.character(`#IID`)]
+  ## Convert pvar position to numeric
+  pvar[, `POS` := as.integer(`POS`)]
 
   ## Convert to data.table and sort/subset samples to pgen
   dt_tracts <- dt_tracts |> data.table::data.table()

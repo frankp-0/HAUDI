@@ -1,6 +1,6 @@
 Package: HAUDI
 Title: Efficient Lasso Framework for Admixture-Aware Polygenic Risk Scores
-Version: 1.0.4
+Version: 1.0.5
 Authors@R: 
   person("Franklin", "Ockerman", , "frankpo@unc.edu", role = c("aut", "cre"))
 Description: HAUDI is an R package for constructing polygenic scores

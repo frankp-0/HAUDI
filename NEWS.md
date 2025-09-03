@@ -1,3 +1,8 @@
+## HAUDI 1.0.5
+
+- Now read psam files as character to avoid big integer issues with sample IDs
+- Previously read with automatic colClasses then converted
+
 ## HAUDI 1.0.4
 
 - Fixed bug where sample IDs may be read as numeric
