@@ -1,3 +1,7 @@
+## HAUDI 1.0.7
+
+- In 'convert_to_lanc', now extend final tract index to the end of the chromosome
+
 ## HAUDI 1.0.6
 
 - Now does not throw error in make_fbm if a pvar file does not contain a matching variant
