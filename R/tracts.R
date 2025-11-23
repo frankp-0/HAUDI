@@ -64,8 +64,9 @@ validate_tracts <- function(dt_tracts) {
 #' @param output A string with the file path to save the new ".lanc" file
 #' @export
 convert_to_lanc <- function(
-    file, file_fmt,
-    plink_prefix, output) {
+  file, file_fmt,
+  plink_prefix, output
+) {
   ## Read input to data frame
   if (file_fmt == "FLARE") {
     dt_tracts <- rcpp_read_flare(file)
@@ -119,6 +120,9 @@ convert_to_lanc <- function(
 
   ## If multiple tracts have same idx, pick last one
   dt_tracts <- dt_tracts[, .SD[.N], by = .(sample, chrom, idx)]
+
+  ## Set ending idx of last tract to extend to end of pvar
+  dt_tracts[dt_tracts[, .I[which.max(idx)], by = sample]$V1, idx := nrow(pvar)]
 
   ## Get .lanc file lines
   dt_tracts[, switch := paste0(idx, ":", anc0, anc1)]
