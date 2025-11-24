@@ -36,6 +36,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcpp_get_masked_geno
+NumericMatrix rcpp_get_masked_geno(IntegerMatrix anc0, IntegerMatrix anc1, NumericMatrix gen0, NumericMatrix gen1, int n_anc);
+RcppExport SEXP _HAUDI_rcpp_get_masked_geno(SEXP anc0SEXP, SEXP anc1SEXP, SEXP gen0SEXP, SEXP gen1SEXP, SEXP n_ancSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerMatrix >::type anc0(anc0SEXP);
+    Rcpp::traits::input_parameter< IntegerMatrix >::type anc1(anc1SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type gen0(gen0SEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type gen1(gen1SEXP);
+    Rcpp::traits::input_parameter< int >::type n_anc(n_ancSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_get_masked_geno(anc0, anc1, gen0, gen1, n_anc));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rcpp_read_rfmix
 DataFrame rcpp_read_rfmix(std::string msp_file);
 RcppExport SEXP _HAUDI_rcpp_read_rfmix(SEXP msp_fileSEXP) {
@@ -51,6 +66,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_HAUDI_rcpp_read_flare", (DL_FUNC) &_HAUDI_rcpp_read_flare, 1},
     {"_HAUDI_rcpp_query_tracts", (DL_FUNC) &_HAUDI_rcpp_query_tracts, 5},
+    {"_HAUDI_rcpp_get_masked_geno", (DL_FUNC) &_HAUDI_rcpp_get_masked_geno, 5},
     {"_HAUDI_rcpp_read_rfmix", (DL_FUNC) &_HAUDI_rcpp_read_rfmix, 1},
     {NULL, NULL, 0}
 };

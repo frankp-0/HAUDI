@@ -1,3 +1,7 @@
+## HAUDI 1.0.10
+
+- Now use Rcpp to construct ancestry-masked genotypes
+
 ## HAUDI 1.0.9
 
 - Fix bugs in ancestry queries (wrong variant indices and incorrect sample subsetting)
