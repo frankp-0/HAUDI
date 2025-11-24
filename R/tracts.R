@@ -154,7 +154,7 @@ read_lanc <- function(lanc_file) {
       as.integer(x_hap[[1]])
     })
   })
-  offsets <- c(0, sapply(breakpoints, length))
+  offsets <- c(0, sapply(breakpoints, length)) |> cumsum()
   breakpoints <- unlist(breakpoints)
   left_haps <- sapply(records, function(x_samp) {
     sapply(x_samp, function(x_hap) {
