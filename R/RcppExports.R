@@ -5,12 +5,8 @@ rcpp_read_flare <- function(flare_file) {
     .Call(`_HAUDI_rcpp_read_flare`, flare_file)
 }
 
-rcpp_parse_lanc <- function(lines) {
-    .Call(`_HAUDI_rcpp_parse_lanc`, lines)
-}
-
-rcpp_query_tracts <- function(query_indices, tract_data) {
-    .Call(`_HAUDI_rcpp_query_tracts`, query_indices, tract_data)
+rcpp_query_tracts <- function(left_haps, right_haps, breakpoints, offsets, indices) {
+    .Call(`_HAUDI_rcpp_query_tracts`, left_haps, right_haps, breakpoints, offsets, indices)
 }
 
 rcpp_read_rfmix <- function(msp_file) {

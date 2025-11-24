@@ -222,8 +222,7 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 
   ## Get ordered ancestries
   if (is.null(anc_names)) {
-    anc_names <- sapply(tracts, function(x) c(x$anc0, x$anc1)) |>
-      unlist() |>
+    anc_names <- c(tracts$left_haps, tracts$right_haps) |>
       unique() |>
       sort() |>
       as.character()

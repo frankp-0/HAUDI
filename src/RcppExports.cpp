@@ -21,26 +21,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rcpp_parse_lanc
-List rcpp_parse_lanc(CharacterVector lines);
-RcppExport SEXP _HAUDI_rcpp_parse_lanc(SEXP linesSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< CharacterVector >::type lines(linesSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpp_parse_lanc(lines));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rcpp_query_tracts
-List rcpp_query_tracts(IntegerVector query_indices, List tract_data);
-RcppExport SEXP _HAUDI_rcpp_query_tracts(SEXP query_indicesSEXP, SEXP tract_dataSEXP) {
+List rcpp_query_tracts(const IntegerVector& left_haps, const IntegerVector& right_haps, const IntegerVector& breakpoints, const IntegerVector& offsets, const IntegerVector& indices);
+RcppExport SEXP _HAUDI_rcpp_query_tracts(SEXP left_hapsSEXP, SEXP right_hapsSEXP, SEXP breakpointsSEXP, SEXP offsetsSEXP, SEXP indicesSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< IntegerVector >::type query_indices(query_indicesSEXP);
-    Rcpp::traits::input_parameter< List >::type tract_data(tract_dataSEXP);
-    rcpp_result_gen = Rcpp::wrap(rcpp_query_tracts(query_indices, tract_data));
+    Rcpp::traits::input_parameter< const IntegerVector& >::type left_haps(left_hapsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type right_haps(right_hapsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type breakpoints(breakpointsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type offsets(offsetsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type indices(indicesSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_query_tracts(left_haps, right_haps, breakpoints, offsets, indices));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -58,8 +50,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_HAUDI_rcpp_read_flare", (DL_FUNC) &_HAUDI_rcpp_read_flare, 1},
-    {"_HAUDI_rcpp_parse_lanc", (DL_FUNC) &_HAUDI_rcpp_parse_lanc, 1},
-    {"_HAUDI_rcpp_query_tracts", (DL_FUNC) &_HAUDI_rcpp_query_tracts, 2},
+    {"_HAUDI_rcpp_query_tracts", (DL_FUNC) &_HAUDI_rcpp_query_tracts, 5},
     {"_HAUDI_rcpp_read_rfmix", (DL_FUNC) &_HAUDI_rcpp_read_rfmix, 1},
     {NULL, NULL, 0}
 };
