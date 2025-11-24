@@ -109,6 +109,10 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
   ## Get ancestry matrices
   anc_mats <- query_tracts(chunk, tracts)
 
+  ## Subset samples in ancestry matrices
+  anc_mats$hap0 <- anc_mats$hap0[idx_samples, ]
+  anc_mats$hap1 <- anc_mats$hap1[idx_samples, ]
+
   ## Per-haplotype alleles
   n_samp <- length(idx_samples)
   gen0 <- gen1 <- matrix(0, n_samp, length(chunk))
@@ -216,9 +220,6 @@ add_to_fbm <- function(lanc_file, plink_prefix,
     "[%s] Finished reading ancestry tracts",
     format(Sys.time(), "%H:%M:%S")
   ))
-
-  ## Subset samples matching with tracts
-  tracts <- tracts[idx_samples]
 
   ## Get ordered ancestries
   if (is.null(anc_names)) {
