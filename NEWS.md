@@ -1,3 +1,11 @@
+## HAUDI 1.0.9
+
+- Fix bugs in ancestry queries (wrong variant indices and incorrect sample subsetting)
+
+## HAUDI 1.0.8
+
+- Now use flattened structure to represent ancestry tracts
+
 ## HAUDI 1.0.7
 
 - In 'convert_to_lanc', now extend final tract index to the end of the chromosome
