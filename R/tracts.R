@@ -185,6 +185,6 @@ read_lanc <- function(lanc_file) {
 query_tracts <- function(query, tracts) {
   rcpp_query_tracts(
     tracts$left_haps, tracts$right_haps,
-    tracts$breakpoints, tracts$offsets, query
+    tracts$breakpoints, tracts$offsets, query - 1
   )
 }
