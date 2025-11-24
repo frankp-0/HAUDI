@@ -124,11 +124,7 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
   }
 
   ## Per-ancestry genotypes and total genotypes
-  mat_haudi <- lapply(0:(length(anc_names) - 1), function(anc) {
-    gen0 * (anc_mats$hap0 == anc) + gen1 * (anc_mats$hap1 == anc)
-  }) |>
-    do.call(what = "cbind") |>
-    cbind(gen0 + gen1)
+  mat_haudi <- rcpp_get_masked_geno(anc_mats$hap0, anc_mats$hap1, gen0, gen1, length(anc_names))
 
   dt_info <- data.table::data.table(
     chrom = rep(pvar[chunk, ]$`#CHROM`, length(anc_names) + 1),

@@ -9,6 +9,10 @@ rcpp_query_tracts <- function(left_haps, right_haps, breakpoints, offsets, indic
     .Call(`_HAUDI_rcpp_query_tracts`, left_haps, right_haps, breakpoints, offsets, indices)
 }
 
+rcpp_get_masked_geno <- function(anc0, anc1, gen0, gen1, n_anc) {
+    .Call(`_HAUDI_rcpp_get_masked_geno`, anc0, anc1, gen0, gen1, n_anc)
+}
+
 rcpp_read_rfmix <- function(msp_file) {
     .Call(`_HAUDI_rcpp_read_rfmix`, msp_file)
 }
