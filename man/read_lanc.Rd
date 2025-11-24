@@ -10,10 +10,11 @@ read_lanc(lanc_file)
 \item{lanc_file}{A string with the file path to a .lanc file from \code{Admix-kit}}
 }
 \value{
-A list of data.frames, where each element corresponds to a sample,
-and has columns \code{index} (representing indices
-in a plink2 pvar file) and "anc0" and "anc1", corresponding to ancestries for
-each haplotype.
+A flattened list structure with elements:
+left_haps: ancestry for hap0 (integer) across samples
+right_haps: ancestry for hap1 (integer) across samples
+breakpoints: ancestry tract breakpoints (idx in pvar file) across samples
+offsets: cumulative end indices separating samples
 }
 \description{
 Read .lanc file into list of tracts

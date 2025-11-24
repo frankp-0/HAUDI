@@ -31,7 +31,10 @@ validate_tracts <- function(dt_tracts) {
   }
 
   ## check no samples missing
-  n_counts_unique <- dt_tracts[, length(unique(.SD$sample)), by = .(chrom)]$V1 |>
+  n_counts_unique <- dt_tracts[,
+    length(unique(.SD$sample)),
+    by = .(chrom)
+  ]$V1 |>
     unique() |>
     length()
   if (!all(n_counts_unique == 1)) {
@@ -63,10 +66,7 @@ validate_tracts <- function(dt_tracts) {
 #' @param plink_prefix A string with the plink2 prefix file
 #' @param output A string with the file path to save the new ".lanc" file
 #' @export
-convert_to_lanc <- function(
-  file, file_fmt,
-  plink_prefix, output
-) {
+convert_to_lanc <- function(file, file_fmt, plink_prefix, output) {
   ## Read input to data frame
   if (file_fmt == "FLARE") {
     dt_tracts <- rcpp_read_flare(file)
@@ -139,24 +139,52 @@ convert_to_lanc <- function(
 #' Read .lanc file into list of tracts
 #'
 #' @param lanc_file A string with the file path to a .lanc file from `Admix-kit`
-#' @return A list of data.frames, where each element corresponds to a sample,
-#' and has columns `index` (representing indices
-#' in a plink2 pvar file) and "anc0" and "anc1", corresponding to ancestries for
-#' each haplotype.
-#' @importFrom Rcpp sourceCpp
+#' @return A flattened list structure with elements:
+#'   left_haps: ancestry for hap0 (integer) across samples
+#'   right_haps: ancestry for hap1 (integer) across samples
+#'   breakpoints: ancestry tract breakpoints (idx in pvar file) across samples
+#'   offsets: cumulative end indices separating samples
 #' @export
 read_lanc <- function(lanc_file) {
-  rcpp_parse_lanc(readLines(lanc_file)[-1])
+  lines <- readLines(lanc_file)[-1]
+  records <- strsplit(lines, " ") |>
+    sapply(X = _, strsplit, ":")
+  breakpoints <- sapply(records, function(x_samp) {
+    sapply(x_samp, function(x_hap) {
+      as.integer(x_hap[[1]])
+    })
+  })
+  offsets <- c(0, sapply(breakpoints, length))
+  breakpoints <- unlist(breakpoints)
+  left_haps <- sapply(records, function(x_samp) {
+    sapply(x_samp, function(x_hap) {
+      as.integer(substr(x_hap[[2]], 1, 1))
+    })
+  }) |> unlist()
+  right_haps <- sapply(records, function(x_samp) {
+    sapply(x_samp, function(x_hap) {
+      as.integer(substr(x_hap[[2]], 2, 2))
+    })
+  }) |> unlist()
+  list(
+    left_haps = left_haps,
+    right_haps = right_haps,
+    breakpoints = breakpoints,
+    offsets = offsets
+  )
 }
 
 #' Query ancestry tracts for haplotype ancestry matrices
 #'
 #' @param query An integer vector of indices corresponding to a
 #' .lanc and .pvar file
-#' @param tracts A list of ancestry tracts (as returned by `read_lanc`)
+#' @param tracts A list with ancestry tracts (as returned by `read_lanc`)
 #' @return A list with two elements "hap0" and "hap1", containing the
 #' haplotype-level ancestry matrices for the query.
 #' @noRd
 query_tracts <- function(query, tracts) {
-  rcpp_query_tracts(query, tracts)
+  rcpp_query_tracts(
+    tracts$left_haps, tracts$right_haps,
+    tracts$breakpoints, tracts$offsets, query
+  )
 }
