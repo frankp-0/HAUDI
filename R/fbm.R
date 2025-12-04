@@ -110,8 +110,8 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
   anc_mats <- query_tracts(chunk, tracts)
 
   ## Subset samples in ancestry matrices
-  anc_mats$hap0 <- anc_mats$hap0[idx_samples, ]
-  anc_mats$hap1 <- anc_mats$hap1[idx_samples, ]
+  anc_mats$hap0 <- anc_mats$hap0[idx_samples, , drop = FALSE]
+  anc_mats$hap1 <- anc_mats$hap1[idx_samples, , drop = FALSE]
 
   ## Per-haplotype alleles
   n_samp <- length(idx_samples)

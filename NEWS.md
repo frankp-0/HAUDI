@@ -1,3 +1,7 @@
+## HAUDI 1.0.11
+
+- Fixed bug where matrix dimensions dropped when only a single variant is used to construct the FBM
+
 ## HAUDI 1.0.10
 
 - Now use Rcpp to construct ancestry-masked genotypes
