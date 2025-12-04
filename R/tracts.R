@@ -181,7 +181,7 @@ read_lanc <- function(lanc_file) {
 #' @param tracts A list with ancestry tracts (as returned by `read_lanc`)
 #' @return A list with two elements "hap0" and "hap1", containing the
 #' haplotype-level ancestry matrices for the query.
-#' @noRd
+#' @export
 query_tracts <- function(query, tracts) {
   rcpp_query_tracts(
     tracts$left_haps, tracts$right_haps,
