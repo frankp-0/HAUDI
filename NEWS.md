@@ -1,3 +1,7 @@
+## HAUDI 1.0.12
+
+- Fixed bug with `read_lanc` when a sample has only one ancestry
+
 ## HAUDI 1.0.11
 
 - Fixed bug where matrix dimensions dropped when only a single variant is used to construct the FBM
