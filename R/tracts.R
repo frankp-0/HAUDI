@@ -148,9 +148,9 @@ convert_to_lanc <- function(file, file_fmt, plink_prefix, output) {
 read_lanc <- function(lanc_file) {
   lines <- readLines(lanc_file)[-1]
   records <- strsplit(lines, " ") |>
-    sapply(X = _, strsplit, ":")
+    lapply(X = _, strsplit, ":")
   breakpoints <- sapply(records, function(x_samp) {
-    sapply(x_samp, function(x_hap) {
+    lapply(x_samp, function(x_hap) {
       as.integer(x_hap[[1]])
     })
   })
