@@ -158,7 +158,7 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #'
 #' @inheritParams make_fbm
 #' @param lanc_file A string with the file path for a single local
-#' ancestry input file
+#' @param lanc_obj A local ancestry object (alternative to lanc_file)
 #' @param plink_prefix A string with the prefix for a single set of plink2
 #' files
 #' @param idx_variants An integer vector with indices of variants to include
@@ -166,7 +166,7 @@ make_haudi_chunk <- function(chunk, pgen, pvar, tracts,
 #' in the FBM
 #' @inherit make_fbm return
 #' @noRd
-add_to_fbm <- function(lanc_file, plink_prefix,
+add_to_fbm <- function(lanc_file = NULL, lanc_obj = NULL, plink_prefix,
                        fbm_prefix, variants = NULL, idx_variants = NULL,
                        min_ac = 0, samples = NULL, idx_samples = NULL,
                        anc_names = NULL, chunk_size = 400, fbm = NULL) {
@@ -207,15 +207,19 @@ add_to_fbm <- function(lanc_file, plink_prefix,
   }
 
   ## Read ancestry tracts
-  message(sprintf(
-    "[%s] Reading ancestry tracts: %s",
-    format(Sys.time(), "%H:%M:%S"), lanc_file
-  ))
-  tracts <- read_lanc(lanc_file)
-  message(sprintf(
-    "[%s] Finished reading ancestry tracts",
-    format(Sys.time(), "%H:%M:%S")
-  ))
+  if (!is.null(lanc_obj)) {
+    tracts <- lanc_obj
+  } else {
+    message(sprintf(
+      "[%s] Reading ancestry tracts: %s",
+      format(Sys.time(), "%H:%M:%S"), lanc_file
+    ))
+    tracts <- read_lanc(lanc_file)
+    message(sprintf(
+      "[%s] Finished reading ancestry tracts",
+      format(Sys.time(), "%H:%M:%S")
+    ))
+  }
 
   ## Get ordered ancestries
   if (is.null(anc_names)) {
@@ -299,7 +303,11 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 #' inputs are sorted by position.
 #'
 #' @param lanc_files A string vector with file paths for
-#' the local ancestry input
+#' the local ancestry input. Optional but must be provided if
+#' `lanc_objs` is not provided.
+#' @param lanc_objs A list of local ancestry objects as
+#' constructed by `read_lanc`. Optional but must be provided if
+#' `lanc_files` is not provided.
 #' @param plink_prefixes A string vector with the prefixes for plink2 file paths
 #' @param fbm_prefix A string with the prefix for the
 #' file path where a new backing file for the FBM
@@ -339,12 +347,12 @@ add_to_fbm <- function(lanc_file, plink_prefix,
 #' @importFrom bigstatsr FBM.code256
 #' @importFrom progress progress_bar
 #' @export
-make_fbm <- function(lanc_files, plink_prefixes,
+make_fbm <- function(lanc_files = NULL, plink_prefixes, lanc_objs = NULL,
                      fbm_prefix, variants = NULL, idx_variants_list = NULL,
                      min_ac = 0, samples = NULL, idx_samples = NULL,
                      anc_names = NULL, chunk_size = 400) {
   result <- add_to_fbm(
-    lanc_files[1], plink_prefixes[1],
+    lanc_files[1], lanc_objs[[1]], plink_prefixes[1],
     fbm_prefix, variants, idx_variants_list[[1]],
     min_ac, samples, idx_samples, anc_names, chunk_size
   )
@@ -353,6 +361,7 @@ make_fbm <- function(lanc_files, plink_prefixes,
     for (i in 2:length(lanc_files)) {
       result <- add_to_fbm(
         lanc_file = lanc_files[i],
+        lanc_obj = lanc_objs[[i]],
         plink_prefix = plink_prefixes[i], fbm_prefix = NULL,
         variants = variants, idx_variants = idx_variants_list[[i]],
         min_ac = min_ac, samples = samples,
