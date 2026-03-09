@@ -1,3 +1,7 @@
+## HAUDI 1.1.0
+
+- Introduced feature to provide lanc object instead of file as input to `make_fbm`. Useful if calling `make_fbm` many times.
+
 ## HAUDI 1.0.12
 
 - Fixed bug with `read_lanc` when a sample has only one ancestry
