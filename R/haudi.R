@@ -146,6 +146,7 @@ lasso <- function(fbm, fbm_info, y_train,
       X = fbm,
       y.train = y_train,
       ind.col = ind_col,
+      K = k,
       ...
     )
   } else if (family == "binomial") {
@@ -153,6 +154,7 @@ lasso <- function(fbm, fbm_info, y_train,
       X = fbm,
       y01.train = y_train,
       ind.col = ind_col,
+      K = k,
       ...
     )
   }
