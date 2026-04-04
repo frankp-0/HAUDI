@@ -116,7 +116,7 @@ haudi <- function(fbm, fbm_info, y_train, gamma_vec,
 #' or `bigstatsr::big_spLogReg`
 #'
 #' @inheritParams haudi
-## @export
+#' @export
 lasso <- function(fbm, fbm_info, y_train,
                   family, k = 10, variants = NULL, ...) {
   ## Check for disallowed arguments

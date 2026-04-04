@@ -5,8 +5,9 @@
 \title{Make File-Backed Matrix input for HAUDI}
 \usage{
 make_fbm(
-  lanc_files,
+  lanc_files = NULL,
   plink_prefixes,
+  lanc_objs = NULL,
   fbm_prefix,
   variants = NULL,
   idx_variants_list = NULL,
@@ -19,9 +20,14 @@ make_fbm(
 }
 \arguments{
 \item{lanc_files}{A string vector with file paths for
-the local ancestry input}
+the local ancestry input. Optional but must be provided if
+\code{lanc_objs} is not provided.}
 
 \item{plink_prefixes}{A string vector with the prefixes for plink2 file paths}
+
+\item{lanc_objs}{A list of local ancestry objects as
+constructed by \code{read_lanc}. Optional but must be provided if
+\code{lanc_files} is not provided.}
 
 \item{fbm_prefix}{A string with the prefix for the
 file path where a new backing file for the FBM
