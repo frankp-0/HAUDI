@@ -73,8 +73,10 @@ cv_fused_lasso <- function(x, y, n_folds,
 
   i <- 1
   ## for each value of gamma, loop through this procedure.
-  for (gamma in gamma_vec) {
+  for (i_gamma in seq_along(gamma_vec)) {
+    gamma <- gamma_vec[i_gamma]
     penalty_matrix <- get_upper_fusion_matrix(x)
+    message("Fitting gamma ", i_gamma, "/", length(gamma_vec), ": ", gamma)
 
     if (is.null(penalty_matrix)) {
       return(NA)

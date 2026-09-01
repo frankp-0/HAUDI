@@ -11,23 +11,33 @@ export(query_tracts)
 export(read_lanc)
 importFrom(Matrix,sparseMatrix)
 importFrom(Rcpp,sourceCpp)
-importFrom(bigstatsr,FBM.code256)
-importFrom(bigstatsr,big_spLinReg)
-importFrom(bigstatsr,big_spLogReg)
-importFrom(bigstatsr,rows_along)
-importFrom(data.table,data.table)
-importFrom(data.table,fread)
-importFrom(data.table,set)
-importFrom(data.table,setorder)
-importFrom(genlasso,fusedlasso)
-importFrom(genlasso,getD1dSparse)
-importFrom(genlasso,predict.genlasso)
-importFrom(pgenlibr,AlleleCodeBuf)
-importFrom(pgenlibr,NewPgen)
-importFrom(pgenlibr,ReadAlleles)
+importFrom(bigstatsr,
+  FBM.code256,
+  big_spLinReg,
+  big_spLogReg,
+  rows_along
+)
+importFrom(data.table,
+  data.table,
+  fread,
+  set,
+  setorder
+)
+importFrom(genlasso,
+  fusedlasso,
+  getD1dSparse,
+  predict.genlasso
+)
+importFrom(pgenlibr,
+  AlleleCodeBuf,
+  NewPgen,
+  ReadAlleles
+)
 importFrom(progress,progress_bar)
 importFrom(splitTools,create_folds)
-importFrom(stats,cor)
-importFrom(stats,na.omit)
+importFrom(stats,
+  cor,
+  na.omit
+)
 importFrom(stringr,str_remove)
 useDynLib(HAUDI, .registration = TRUE)

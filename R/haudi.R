@@ -69,7 +69,9 @@ haudi <- function(fbm, fbm_info, y_train, gamma_vec,
 
   ## Fit models per-gamma
   cv_results <- data.frame(gamma = gamma_vec, validation_loss = NA_real_)
-  for (gamma in gamma_vec) {
+  for (i_gamma in seq_along(gamma_vec)) {
+    gamma <- gamma_vec[i_gamma]
+    message("Fitting gamma ", i_gamma, "/", length(gamma_vec), ": ", gamma)
     ## specify multiplicative penalty
     pf_x <- rep(1, ncol(fbm))
     pf_x[fbm_info$anc == "all"] <- gamma

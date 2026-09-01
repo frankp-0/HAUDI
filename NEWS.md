@@ -1,3 +1,7 @@
+## HAUDI 1.2.0
+
+- Track progress along gamma vector
+
 ## HAUDI 1.1.0
 
 - Introduced feature to provide lanc object instead of file as input to `make_fbm`. Useful if calling `make_fbm` many times.
