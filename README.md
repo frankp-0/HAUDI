@@ -67,7 +67,7 @@ pheno_file <- system.file("extdata/toy.pheno", package = "HAUDI")
 y <- read.csv(pheno_file, sep = "\t")$phenotype
 result <- HAUDI::haudi(
   fbm = input$fbm, fbm_info = input$info, y_train = y,
-  gamma_vec = seq(1, 2, 0.2), family = "gaussian")
+  gamma_vec = seq(0, 1, 0.2), family = "gaussian")
 ```
 
 To obtain a data frame with ancestry-specific effect estimates, use the
@@ -75,3 +75,8 @@ helper function `get_beta_haudi`.
 
 The `HAUDI` package also provides provides a function to run GAUDI,
 using the same input data as for HAUDI.
+
+## Practical considerations
+
+- The gamma parameter (`gamma_vec`) should be subset between 0 and 1. Values larger than 1 will result in the reference ancestry effect receiving greater penalty than the ancestry-differential effect, which is not the intended behavior of the model.
+- A WDL workflow is available: <https://github.com/frankp-0/HAUDI_workflow>
