@@ -172,10 +172,11 @@ lasso <- function(fbm, fbm_info, y_train,
 #' @importFrom data.table data.table set
 #' @export
 get_beta_haudi <- function(fbm_info, haudi_model) {
+  ind_col <- attr(haudi_model, "ind.col")
   dt_snp <- data.table::data.table(
-    snp = fbm_info$id[attr(haudi_model, "ind.col")],
-    beta = summary(haudi_model)$beta[[1]],
-    anc = fbm_info$anc[attr(haudi_model, "ind.col")]
+    snp = fbm_info$id[ind_col],
+    beta = summary(haudi_model)$beta[[1]][ind_col],
+    anc = fbm_info$anc[ind_col]
   )
 
   ancestries <- unique(fbm_info$anc)
