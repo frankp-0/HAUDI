@@ -1,3 +1,8 @@
+## HAUDI 1.2.1
+
+- Fix bug in selecting columns in `get_beta_haudi`
+- Now recommend to use gamma values between 0 and 1 for HAUDI
+
 ## HAUDI 1.2.0
 
 - Track progress along gamma vector
