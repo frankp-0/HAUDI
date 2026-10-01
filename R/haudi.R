@@ -175,7 +175,7 @@ get_beta_haudi <- function(fbm_info, haudi_model) {
   ind_col <- attr(haudi_model, "ind.col")
   dt_snp <- data.table::data.table(
     snp = fbm_info$id[ind_col],
-    beta = summary(haudi_model)$beta[[1]][ind_col],
+    beta = summary(haudi_model)$beta[[1]][seq_along(ind_col)],
     anc = fbm_info$anc[ind_col]
   )
 
