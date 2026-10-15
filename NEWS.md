@@ -1,4 +1,6 @@
-# HAUDI 1.2.2
+## HAUDI 1.2.2
+
+- Fix bug in selecting optimal gamma value in HAUDI
 
 ## HAUDI 1.2.1
 
