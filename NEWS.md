@@ -1,3 +1,5 @@
+# HAUDI 1.2.2
+
 ## HAUDI 1.2.1
 
 - Fix bug in selecting columns in `get_beta_haudi`
