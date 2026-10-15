@@ -100,7 +100,7 @@ haudi <- function(fbm, fbm_info, y_train, gamma_vec,
     i <- which(cv_results$gamma == gamma)
     loss_val <- summary(model)$validation_loss
     cv_results$validation_loss[i] <- loss_val
-    if (loss_val == max(cv_results$validation_loss, na.rm = TRUE)) {
+    if (loss_val == min(cv_results$validation_loss, na.rm = TRUE)) {
       final_model <- model
     }
   }
