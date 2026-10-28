@@ -1,3 +1,7 @@
+## HAUDI 1.2.3
+
+- Fix singular problem in README example for gamma=0
+
 ## HAUDI 1.2.2
 
 - Fix bug in selecting optimal gamma value in HAUDI
