@@ -67,7 +67,7 @@ pheno_file <- system.file("extdata/toy.pheno", package = "HAUDI")
 y <- read.csv(pheno_file, sep = "\t")$phenotype
 result <- HAUDI::haudi(
   fbm = input$fbm, fbm_info = input$info, y_train = y,
-  gamma_vec = seq(0, 1, 0.2), family = "gaussian")
+  gamma_vec = seq(0.001, 1, 0.2), family = "gaussian")
 ```
 
 To obtain a data frame with ancestry-specific effect estimates, use the
